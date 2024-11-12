@@ -1,3 +1,6 @@
 [submodule "repo_ohken322"]
 	path = repo_ohken322
 	url = https://github.com/ohken322/opt100.git
+[submodule "repo_okaduki"]
+	path = repo_okaduki
+	url = https://github.com/okaduki/opt100.git
