@@ -30,6 +30,8 @@ kiwisolver==1.4.7
     # via matplotlib
 matplotlib==3.9.2
     # via opt100
+networkx==3.4.2
+    # via opt100
 numpy==2.1.3
     # via clarabel
     # via contourpy

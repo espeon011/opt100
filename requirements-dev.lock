@@ -191,6 +191,8 @@ nbformat==5.10.4
     # via nbconvert
 nest-asyncio==1.6.0
     # via ipykernel
+networkx==3.4.2
+    # via opt100
 notebook==7.0.7
     # via jupyter
 notebook-shim==0.2.4
