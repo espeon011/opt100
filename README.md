@@ -14,6 +14,12 @@ $ uv run jupyter lab --no-browser --ServerApp.ip="*" --ServerApp.custom_display_
 $ uv run marimo --development-mode edit --headless --sandbox --no-token
 ```
 
+Marimo をリモートマシンで起動している場合, ローカルマシンで下記コマンドを実行する. 
+
+```
+$ ssh -L {ポート番号}:localhost:{ポート番号} {リモートホスト名 or IP アドレス}
+```
+
 ## Submodule の更新
 
 ```
