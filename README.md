@@ -5,3 +5,11 @@
 ```
 $ rye run lab
 ```
+
+## Submodule の更新
+
+```
+$ git submodule update --remote
+$ git add .
+$ git commit
+```
