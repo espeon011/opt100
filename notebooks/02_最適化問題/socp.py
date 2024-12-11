@@ -72,6 +72,8 @@ def __(model, x, y, z):
     print(f"y = {y_val}")
     print(f"z = {z_val}")
     print(f"objective = {model.getObjVal()}")
+
+    # SCIP の連続変数の最適解は微妙に制約を破っていたりする
     print(f"x^2 + y^2 <= z^2 ?: {x_val ** 2 + y_val ** 2 <= z_val ** 2}")
     return x_val, y_val, z_val
 
