@@ -524,15 +524,12 @@ def __(make_data, prodmix):
     for _i in range(5):
         _epsilon = _i * 0.01
         _model = prodmix(_I, _K, _a, _p, _epsilon, _LB)
+        _model.hideOutput()
         _model.optimize()
         obj_list.append(_model.getObjVal())
+
+    print(obj_list)
     return (obj_list,)
-
-
-@app.cell
-def __(obj_list):
-    obj_list
-    return
 
 
 @app.cell
