@@ -20,6 +20,12 @@ Marimo をリモートマシンで起動している場合, ローカルマシ�
 $ ssh -L {ポート番号}:localhost:{ポート番号} {リモートホスト名 or IP アドレス}
 ```
 
+## Marimo notebook から Jupyter notebook への変換
+
+```
+$ uv run marimo export ipynb --include-outputs <Marimo notebook name(.py file)> --output <Jupyter notebook name(.ipynb file)>
+```
+
 ## Submodule の更新
 
 ```
