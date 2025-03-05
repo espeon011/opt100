@@ -6,42 +6,39 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs =
-    { self
-    , nixpkgs
-    , flake-utils
-    ,
-    }:
+  outputs = {
+    self,
+    nixpkgs,
+    flake-utils,
+  }:
     flake-utils.lib.eachDefaultSystem
-      (system:
-      let
-        pkgs = import nixpkgs {
-          inherit system;
-        };
-      in
-      {
-        devShells.default = pkgs.mkShell {
-          nativeBuildInputs = [ ];
+    (system: let
+      pkgs = import nixpkgs {
+        inherit system;
+      };
+    in {
+      devShells.default = pkgs.mkShell {
+        nativeBuildInputs = [];
 
-          BuildInputs = [ ];
+        BuildInputs = [];
 
-          packages = [
-            pkgs.python312
-            pkgs.uv
-            pkgs.ruff
-          ];
+        packages = [
+          pkgs.python313
+          pkgs.uv
+          pkgs.ruff
+        ];
 
-          # numpy 依存ライブラリへの PATH
-          # 他にも uv add <パッケージ名> をした後に実行してランタイムエラーになる場合, 
-          # ここにライブラリを書けば解決するかもしれない
-          LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath (with pkgs; [
-            libgcc.lib
-            libz
-          ]);
+        # numpy 依存ライブラリへの PATH
+        # 他にも uv add <パッケージ名> をした後に実行してランタイムエラーになる場合,
+        # ここにライブラリを書けば解決するかもしれない
+        LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath (with pkgs; [
+          libgcc.lib
+          libz
+        ]);
 
-          shellHook = ''
-            source .venv/bin/activate
-          '';
-        };
-      });
+        shellHook = ''
+          source .venv/bin/activate
+        '';
+      };
+    });
 }
