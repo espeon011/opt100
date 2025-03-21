@@ -37,18 +37,10 @@ def _(mo):
         r"""
         $n$ 個のジョブを $m$ 台のマシンで順番に処理する.
         各ジョブはマシン 1, マシン 2, ... で順に処理されマシン $m$ で処理されると完了になる.
+
+        ![](https://www.researchgate.net/profile/Mariusz-Makuchowski/publication/280775329/figure/fig1/AS:284468087672848@1444833885900/Schedules-of-the-different-variants-of-the-flow-shop-problem.png)
         """
     )
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.image(
-        src="https://www.researchgate.net/profile/Mariusz-Makuchowski/publication/280775329/figure/fig1/AS:284468087672848@1444833885900/Schedules-of-the-different-variants-of-the-flow-shop-problem.png",
-        width=800,
-        caption="https://www.researchgate.net/figure/Schedules-of-the-different-variants-of-the-flow-shop-problem_fig1_280775329"
-    ).center()
     return
 
 
