@@ -8,7 +8,7 @@
 
 import marimo
 
-__generated_with = "0.11.14"
+__generated_with = "0.11.25"
 app = marimo.App(width="medium")
 
 
@@ -169,11 +169,6 @@ def _(make_data, scheduling_linear_ordering):
         print("T(%s) = %s" % (i, int(model.getVal(T[i]) + 0.5)))
     print("Opt.value by the linear ordering formulation=", z)
     return J, T, d, i, j, model, n, p, r, w, x, z
-
-
-@app.cell
-def _():
-    return
 
 
 if __name__ == "__main__":
