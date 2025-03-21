@@ -8,7 +8,7 @@
 
 import marimo
 
-__generated_with = "0.11.14"
+__generated_with = "0.11.25"
 app = marimo.App(width="medium")
 
 
@@ -165,31 +165,19 @@ def _(scip):
 
 
 @app.cell
-def _(mo):
-    optimize_model = mo.ui.run_button(label="Run")
-    optimize_model
-    return (optimize_model,)
+def _(make_data_permutation_flow_shop, permutation_flow_shop):
+    n = 10
+    m = 10
+    p = make_data_permutation_flow_shop(n, m)
 
-
-@app.cell
-def _(make_data_permutation_flow_shop, optimize_model, permutation_flow_shop):
-    if optimize_model.value:
-    # if True:
-        n = 5
-        m = 5
-        p = make_data_permutation_flow_shop(n, m)
-
-        model, x, s, f = permutation_flow_shop(n, m, p)
-        model.optimize()
-        print("Opt.value=", model.getObjVal())
+    model, x, s, f = permutation_flow_shop(n, m, p)
+    model.optimize()
+    print("Opt.value=", model.getObjVal())
     return f, m, model, n, p, s, x
 
 
 @app.cell
-def _(model):
-    # if optimize_model.value:
-    if True:
-        model.getObjVal()
+def _():
     return
 
 
