@@ -10,7 +10,7 @@
 
 import marimo
 
-__generated_with = "0.11.14"
+__generated_with = "0.11.22"
 app = marimo.App(width="medium")
 
 
@@ -161,56 +161,9 @@ def _(scip):
 
 
 @app.cell
-def _(cp_model):
-    class ModelDisjunctiveCpSat:
-        def __init__(self, J, p, r, w):
-            self.J = J
-            self.p = p
-            self.r = r
-            self.w = w
-
-            self.cp = cp_model.CpModel()
-            self.solver = cp_model.CpSolver()
-
-            # Big M
-            M = max(r.values()) + sum(p.values())
-
-            # start time variable, x[j,k] = 1 if job j precedes job k, 0 otherwise
-            self.x = {}
-            self.s = {}
-
-            ub = sum(p[j] for j in J)
-            for j in J:
-                self.s[j] = self.cp.new_int_var(lb=r[j], ub=ub, name=f"s[{j}]")
-                for k in J:
-                    if j != k:
-                        self.x[j, k] = self.cp.new_bool_var(name=f"x[{j},{k}]")
-
-            for j in J:
-                for k in J:
-                    if j != k:
-                        self.cp.add(self.s[j] - self.s[k] + M * self.x[j, k] <= (M - p[j]))
-
-                    if j < k:
-                        self.cp.add(self.x[j, k] + self.x[k, j] == 1)
-
-            self.cp.minimize(sum(self.w[j] * self.s[j] for j in J))
-
-        def solve(self) -> None:
-            self.solver.parameters.log_search_progress = True
-            self.solver.solve(self.cp)
-
-        def get_z(self):
-            return self.solver.objective_value + sum([self.w[_j] * self.p[_j] for _j in self.J])
-
-        def get_seq(self):
-            return [_j for (_t, _j) in sorted([(int(self.solver.value(self.s[_j]) + 0.5), _j) for _j in self.s])]
-    return (ModelDisjunctiveCpSat,)
-
-
-@app.cell
 def _(scip):
     class _MyInterval:
+        # [start, end)
         def __init__(self, scip: scip.Model, lb: int, ub: int, size: int):
             self.lb = lb
             self.ub = ub
@@ -264,6 +217,54 @@ def _(scip):
 
 @app.cell
 def _(cp_model):
+    class ModelDisjunctiveCpSat:
+        def __init__(self, J, p, r, w):
+            self.J = J
+            self.p = p
+            self.r = r
+            self.w = w
+
+            self.cp = cp_model.CpModel()
+            self.solver = cp_model.CpSolver()
+
+            # Big M
+            M = max(r.values()) + sum(p.values())
+
+            # start time variable, x[j,k] = 1 if job j precedes job k, 0 otherwise
+            self.x = {}
+            self.s = {}
+
+            ub = sum(p[j] for j in J)
+            for j in J:
+                self.s[j] = self.cp.new_int_var(lb=r[j], ub=ub, name=f"s[{j}]")
+                for k in J:
+                    if j != k:
+                        self.x[j, k] = self.cp.new_bool_var(name=f"x[{j},{k}]")
+
+            for j in J:
+                for k in J:
+                    if j != k:
+                        self.cp.add(self.s[j] - self.s[k] + M * self.x[j, k] <= (M - p[j]))
+
+                    if j < k:
+                        self.cp.add(self.x[j, k] + self.x[k, j] == 1)
+
+            self.cp.minimize(sum(self.w[j] * self.s[j] for j in J))
+
+        def solve(self) -> None:
+            self.solver.parameters.log_search_progress = True
+            self.solver.solve(self.cp)
+
+        def get_z(self):
+            return self.solver.objective_value + sum([self.w[_j] * self.p[_j] for _j in self.J])
+
+        def get_seq(self):
+            return [_j for (_t, _j) in sorted([(int(self.solver.value(self.s[_j]) + 0.5), _j) for _j in self.s])]
+    return (ModelDisjunctiveCpSat,)
+
+
+@app.cell
+def _(cp_model):
     class ModelIntervalCpSat:
         def __init__(self, J, p, r, w):
             self.J = J
@@ -295,7 +296,7 @@ def _(cp_model):
 
 @app.cell
 def _(make_data):
-    n = 8
+    n = 30
     J, p, r, d, w = make_data(n)
     return J, d, n, p, r, w
 
@@ -325,29 +326,6 @@ def _(J, ModelDisjunctiveScip, mo, p, r, run_scip_disj, w):
 
 @app.cell(hide_code=True)
 def _(mo):
-    run_cpsat_disj = mo.ui.run_button(label="Run", full_width=True)
-    run_cpsat_disj
-    return (run_cpsat_disj,)
-
-
-@app.cell
-def _(J, ModelDisjunctiveCpSat, mo, p, r, run_cpsat_disj, w):
-    if run_cpsat_disj.value:
-        _model = ModelDisjunctiveCpSat(J, p, r, w)
-        with mo.redirect_stderr():
-            _model.solve()
-
-        _z = _model.get_z()
-        _seq = _model.get_seq()
-        mo.md(f"""
-        - Opt.value by Disjunctive Formulation: {_z}
-        - Solution: {_seq}
-        """)
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
     run_scip_interval = mo.ui.run_button(label="Run", full_width=True)
     run_scip_interval
     return (run_scip_interval,)
@@ -363,9 +341,24 @@ def _(J, ModelIntervalScip, mo, p, r, run_scip_interval, w):
         _z = _model.get_z()
         _seq = _model.get_seq()
         mo.md(f"""
-        - Opt.value by Disjunctive Formulation: {_z}
+        - Optimal value: {_z}
         - Solution: {_seq}
         """)
+    return
+
+
+@app.cell
+def _(J, ModelDisjunctiveCpSat, mo, p, r, w):
+    _model = ModelDisjunctiveCpSat(J, p, r, w)
+    with mo.redirect_stderr():
+        _model.solve()
+
+    _z = _model.get_z()
+    _seq = _model.get_seq()
+    mo.md(f"""
+    - Opt.value by Disjunctive Formulation: {_z}
+    - Solution: {_seq}
+    """)
     return
 
 
@@ -378,9 +371,14 @@ def _(J, ModelIntervalCpSat, mo, p, r, w):
     _z = _model.get_z()
     _seq = _model.get_seq()
     mo.md(f"""
-    - Opt.value by Disjunctive Formulation: {_z}
+    - Optimal value: {_z}
     - Solution: {_seq}
     """)
+    return
+
+
+@app.cell
+def _():
     return
 
 

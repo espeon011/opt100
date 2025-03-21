@@ -12,3 +12,4 @@ wheels/
 # user definition
 .virtual_documents/
 .ipynb_checkpoints/
+.env
