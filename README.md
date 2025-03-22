@@ -17,12 +17,6 @@ $ uv run marimo --development-mode edit --headless --host 0.0.0.0 --sandbox --no
 Marimo をリモートマシンで起動している場合,
 表示された IP アドレスをリモートマシンの IP アドレスに変更してブラウザからアクセスする. 
 
-## Marimo notebook から Jupyter notebook への変換
-
-```
-$ uv run marimo export ipynb --include-outputs <Marimo notebook name(.py file)> --output <Jupyter notebook name(.ipynb file)>
-```
-
 ## Submodule の更新
 
 ```
