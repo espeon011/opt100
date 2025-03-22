@@ -5,13 +5,13 @@
 ## Jupyter 起動
 
 ```
-$ uv run jupyter lab --no-browser --ServerApp.ip="*" --ServerApp.custom_display_url="http://$(hostname):8888/lab"
+uv run jupyter lab --no-browser --ServerApp.ip="*" --ServerApp.custom_display_url="http://$(hostname):8888/lab"
 ```
 
 ## Marimo 起動
 
 ```
-$ uv run marimo --development-mode edit --headless --host 0.0.0.0 --sandbox --no-token
+uv run marimo --development-mode edit --headless --host 0.0.0.0 --sandbox --no-token
 ```
 
 Marimo をリモートマシンで起動している場合,
@@ -20,7 +20,17 @@ Marimo をリモートマシンで起動している場合,
 ## Submodule の更新
 
 ```
-$ git submodule update --remote
-$ git add .
-$ git commit
+git submodule init
+```
+
+```
+git submodule update --remote
+```
+
+```
+git add .
+```
+
+```
+git commit
 ```
