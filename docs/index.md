@@ -1,3 +1,3 @@
 # Test
 
-- [jobshop](./jobshop.html)
+- [スケジューリング問題](./72_スケジューリング問題/index.md)
