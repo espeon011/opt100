@@ -2,7 +2,7 @@
 # requires-python = ">=3.12"
 # dependencies = [
 #     "marimo",
-#     "ortools==9.11.4210",
+#     "ortools==9.12.4544",
 # ]
 # ///
 

@@ -2,30 +2,30 @@
 # requires-python = ">=3.12"
 # dependencies = [
 #     "marimo",
-#     "ortools==9.11.4210",
+#     "ortools==9.12.4544",
 # ]
 # ///
 
 import marimo
 
-__generated_with = "0.9.34"
-app = marimo.App()
+__generated_with = "0.11.25"
+app = marimo.App(width="medium")
 
 
 @app.cell
-def __():
+def _():
     import marimo as mo
     return (mo,)
 
 
 @app.cell(hide_code=True)
-def __(mo):
+def _(mo):
     mo.md(r"""# 整数最適化問題""")
     return
 
 
 @app.cell(hide_code=True)
-def __(mo):
+def _(mo):
     mo.md(
         r"""
         \begin{align}
@@ -40,13 +40,13 @@ def __(mo):
 
 
 @app.cell
-def __():
+def _():
     from ortools.math_opt.python import mathopt
     return (mathopt,)
 
 
 @app.cell
-def __(mathopt):
+def _(mathopt):
     model = mathopt.Model(name="getting_started_milp")
     x = model.add_integer_variable(lb=0, name="x")
     y = model.add_integer_variable(lb=0, name="y")
@@ -60,7 +60,7 @@ def __(mathopt):
 
 
 @app.cell
-def __(mathopt, model):
+def _(mathopt, model):
     params = mathopt.SolveParameters(enable_output=True)
     result = mathopt.solve(model, mathopt.SolverType.HIGHS, params=params)
     if result.termination.reason != mathopt.TerminationReason.OPTIMAL:
@@ -69,7 +69,7 @@ def __(mathopt, model):
 
 
 @app.cell
-def __(result, x, y, z):
+def _(result, x, y, z):
     print(f"x = {result.variable_values()[x]}")
     print(f"y = {result.variable_values()[y]}")
     print(f"z = {result.variable_values()[z]}")
@@ -78,7 +78,7 @@ def __(result, x, y, z):
 
 
 @app.cell
-def __():
+def _():
     return
 
 

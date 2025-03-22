@@ -2,30 +2,30 @@
 # requires-python = ">=3.12"
 # dependencies = [
 #     "marimo",
-#     "pyscipopt==5.2.1",
+#     "pyscipopt==5.4.1",
 # ]
 # ///
 
 import marimo
 
-__generated_with = "0.9.34"
-app = marimo.App()
+__generated_with = "0.11.25"
+app = marimo.App(width="medium")
 
 
 @app.cell
-def __():
+def _():
     import marimo as mo
     return (mo,)
 
 
 @app.cell(hide_code=True)
-def __(mo):
+def _(mo):
     mo.md(r"""# 錐最適化問題""")
     return
 
 
 @app.cell(hide_code=True)
-def __(mo):
+def _(mo):
     mo.md(
         r"""
         \begin{align}
@@ -40,13 +40,13 @@ def __(mo):
 
 
 @app.cell
-def __():
+def _():
     from pyscipopt import Model
     return (Model,)
 
 
 @app.cell
-def __(Model):
+def _(Model):
     model = Model()
 
     x = model.addVar(vtype='C', lb=0, ub=None, name='x')
@@ -63,7 +63,7 @@ def __(Model):
 
 
 @app.cell
-def __(model, x, y, z):
+def _(model, x, y, z):
     x_val = model.getVal(x)
     y_val = model.getVal(y)
     z_val = model.getVal(z)

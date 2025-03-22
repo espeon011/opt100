@@ -2,33 +2,33 @@
 # requires-python = ">=3.12"
 # dependencies = [
 #     "marimo",
-#     "matplotlib==3.9.3",
-#     "ortools==9.11.4210",
+#     "matplotlib==3.10.1",
+#     "ortools==9.12.4544",
 #     "pandas==2.2.3",
-#     "pyscipopt==5.2.1",
+#     "pyscipopt==5.4.1",
 # ]
 # ///
 
 import marimo
 
-__generated_with = "0.9.34"
+__generated_with = "0.11.25"
 app = marimo.App(width="medium")
 
 
 @app.cell
-def __():
+def _():
     import marimo as mo
     return (mo,)
 
 
 @app.cell(hide_code=True)
-def __(mo):
+def _(mo):
     mo.md(r"""# 栄養問題""")
     return
 
 
 @app.cell(hide_code=True)
-def __(mo):
+def _(mo):
     mo.md(
         r"""
         - 定数
@@ -52,20 +52,21 @@ def __(mo):
 
 
 @app.cell
-def __():
+def _():
     from ortools.math_opt.python import mathopt
+    import pyscipopt
     import pandas as pd
-    return mathopt, pd
+    return mathopt, pd, pyscipopt
 
 
 @app.cell(hide_code=True)
-def __(mo):
+def _(mo):
     mo.md(r"""## 実行不能のケース""")
     return
 
 
 @app.cell(hide_code=True)
-def __(mo):
+def _(mo):
     mo.md(
         r"""
         \begin{align}
@@ -80,7 +81,7 @@ def __(mo):
 
 
 @app.cell
-def __(mathopt):
+def _(mathopt):
     _model = mathopt.Model()
     _x1 = _model.add_variable(lb=0)
     _x2 = _model.add_variable(lb=0)
@@ -98,13 +99,13 @@ def __(mathopt):
 
 
 @app.cell(hide_code=True)
-def __(mo):
+def _(mo):
     mo.md(r"""## 非有界のケース""")
     return
 
 
 @app.cell(hide_code=True)
-def __(mo):
+def _(mo):
     mo.md(
         r"""
         \begin{align}
@@ -119,7 +120,7 @@ def __(mo):
 
 
 @app.cell
-def __(mathopt):
+def _(mathopt):
     _model = mathopt.Model()
     _x1 = _model.add_variable(lb=0)
     _x2 = _model.add_variable(lb=0)
@@ -137,13 +138,13 @@ def __(mathopt):
 
 
 @app.cell(hide_code=True)
-def __(mo):
+def _(mo):
     mo.md(r"""## 実行不可能性の対処法(制約の逸脱を許すモデル化)""")
     return
 
 
 @app.cell(hide_code=True)
-def __(mo):
+def _(mo):
     mo.md(
         r"""
         栄養素摂取量制約の逸脱を許すために摂取量の不足分と超過分を表す決定変数を用意する. 
@@ -176,7 +177,7 @@ def __(mo):
 
 
 @app.cell
-def __():
+def _():
     # https://scmopt.github.io/manual/15mypulp.html#multidict%E9%96%A2%E6%95%B0
 
     def multidict(d: dict):
@@ -194,7 +195,7 @@ def __():
 
 
 @app.cell
-def __(multidict):
+def _(multidict):
     _I, _d = multidict({1: 80, 2: 270, 3: 250, 4: 160, 5: 180})
     _J, _M, _N = multidict({1: [500, 600], 2: [800, 500], 3: [500, 100]})
     print(_I, _d)
@@ -203,7 +204,7 @@ def __(multidict):
 
 
 @app.cell
-def __(multidict):
+def _(multidict):
     F, c, n = multidict(
         {
             "CQPounder": [
@@ -296,36 +297,36 @@ def __(multidict):
 
 
 @app.cell
-def __(multidict):
+def _(multidict):
     N, a, b = multidict({'Cal': [2000, 3000], 'Carbo': [300, 375], 'Protein': [50, 60], 'VitA': [500, 750], 'VitC': [85, 100], 'Calc': [660, 900], 'Iron': [6.0, 7.5]})
     return N, a, b
 
 
 @app.cell
-def __(F, N, a, b, c, mathopt, n):
-    _model = mathopt.Model()
+def _(F, N, a, b, c, mathopt, n):
+    model0 = mathopt.Model()
 
-    x1 = {_j: _model.add_variable(lb=0.0, name=f"x[{_j}]") for _j in F}
-    s1 = {_i: _model.add_variable(lb=0.0, name=f"s[{_i}]") for _i in N}
-    d1 = {_i: _model.add_variable(lb=0.0, name=f"d[{_i}]") for _i in N}
+    x1 = {_j: model0.add_variable(lb=0.0, name=f"x[{_j}]") for _j in F}
+    s1 = {_i: model0.add_variable(lb=0.0, name=f"s[{_i}]") for _i in N}
+    d1 = {_i: model0.add_variable(lb=0.0, name=f"d[{_i}]") for _i in N}
 
     for _i in N:
-        _model.add_linear_constraint(sum((n[_j][_i] * x1[_j] for _j in F)) >= a[_i] - d1[_i])
-        _model.add_linear_constraint(sum((n[_j][_i] * x1[_j] for _j in F)) <= b[_i] - s1[_i])
+        model0.add_linear_constraint(sum((n[_j][_i] * x1[_j] for _j in F)) >= a[_i] - d1[_i])
+        model0.add_linear_constraint(sum((n[_j][_i] * x1[_j] for _j in F)) <= b[_i] - s1[_i])
 
     _M = 9999
     _objective = sum((c[_j] * x1[_j] for _j in F)) + _M * sum((d1[_i] + s1[_i] for _i in N))
-    _model.minimize(_objective)
+    model0.minimize(_objective)
 
     _params = mathopt.SolveParameters(enable_output=True)
-    result1 = mathopt.solve(_model, mathopt.SolverType.GSCIP, params=_params)
+    result1 = mathopt.solve(model0, mathopt.SolverType.GSCIP, params=_params)
     if result1.termination.reason != mathopt.TerminationReason.OPTIMAL:
         raise RuntimeError(f"model failed to solve: {result1.termination}")
-    return d1, result1, s1, x1
+    return d1, model0, result1, s1, x1
 
 
 @app.cell
-def __(F, N, a, b, d1, n, result1, s1, x1):
+def _(F, N, a, b, d1, n, result1, s1, x1):
     x1val = {_j: result1.variable_values()[x1[_j]] for _j in F}
     s1val = {_i: result1.variable_values()[s1[_i]] for _i in N}
     d1val = {_i: result1.variable_values()[d1[_i]] for _i in N}
@@ -339,57 +340,61 @@ def __(F, N, a, b, d1, n, result1, s1, x1):
 
 
 @app.cell
-def __(F, c, x1val):
+def _(F, c, x1val):
     sum(c[_j] * x1val[_j] for _j in F)
     return
 
 
 @app.cell
-def __(result1):
+def _(result1):
     result1.objective_value()
     return
 
 
 @app.cell(hide_code=True)
-def __(mo):
+def _(mo):
     mo.md(r"""# 逸脱最小化""")
     return
 
 
 @app.cell(hide_code=True)
-def __(mo):
+def _(mo):
     mo.md(r"""整数変数の連続変数化, 制約の逸脱をコスト関数化.""")
     return
 
 
 @app.cell
-def __(F, N, a, b, c, mathopt, n):
-    _model = mathopt.Model()
+def _(F, N, a, b, c, n, pyscipopt):
+    model1 = pyscipopt.Model()
 
-    x2 = {_j: _model.add_variable(lb=0.0, name=f"x[{_j}]") for _j in F}
-    s2 = {_i: _model.add_variable(lb=0.0, name=f"s[{_i}]") for _i in N}
-    d2 = {_i: _model.add_variable(lb=0.0, name=f"d[{_i}]") for _i in N}
+    x2 = {_j: model1.addVar(vtype="C", lb=0.0) for _j in F}
+    s2 = {_i: model1.addVar(vtype="C", lb=0.0) for _i in N}
+    d2 = {_i: model1.addVar(vtype="C", lb=0.0) for _i in N}
 
     for _i in N:
-        _model.add_linear_constraint(sum((n[_j][_i] * x2[_j] for _j in F)) >= a[_i] - d2[_i])
-        _model.add_linear_constraint(sum((n[_j][_i] * x2[_j] for _j in F)) <= b[_i] - s2[_i])
+        model1.addCons(pyscipopt.quicksum((n[_j][_i] * x2[_j] for _j in F)) >= a[_i] - d2[_i])
+        model1.addCons(pyscipopt.quicksum((n[_j][_i] * x2[_j] for _j in F)) <= b[_i] - s2[_i])
 
     _M = 999 # ここを大きくし過ぎると計算時間が肥大化する. 
-    _objective = sum((c[_j] * x2[_j] for _j in F)) + _M * sum(s2[_i] * s2[_i] + d2[_i] * d2[_i] for _i in N)
-    _model.minimize(_objective)
+    _objective = 0
+    for _i in N:
+        _s2q = model1.addVar(vtype="C", lb=0.0)
+        _d2q = model1.addVar(vtype="C", lb=0.0)
+        model1.addCons(_s2q == s2[_i] * s2[_i])
+        model1.addCons(_d2q == d2[_i] * d2[_i])
+        _objective += _s2q + _d2q
+    _objective = _M * _objective + pyscipopt.quicksum((c[_j] * x2[_j] for _j in F))
+    model1.setObjective(_objective, sense="minimize")
 
-    _params = mathopt.SolveParameters(enable_output=True)
-    result2 = mathopt.solve(_model, mathopt.SolverType.GSCIP, params=_params)
-    if result2.termination.reason != mathopt.TerminationReason.OPTIMAL:
-        raise RuntimeError(f"model failed to solve: {result2.termination}")
-    return d2, result2, s2, x2
+    model1.optimize()
+    return d2, model1, s2, x2
 
 
 @app.cell
-def __(F, N, a, b, d2, n, result2, s2, x2):
-    x2val = {_j: result2.variable_values()[x2[_j]] for _j in F}
-    s2val = {_i: result2.variable_values()[s2[_i]] for _i in N}
-    d2val = {_i: result2.variable_values()[d2[_i]] for _i in N}
+def _(F, N, a, b, d2, model1, n, s2, x2):
+    x2val = {_j: model1.getVal(x2[_j]) for _j in F}
+    s2val = {_i: model1.getVal(s2[_i]) for _i in N}
+    d2val = {_i: model1.getVal(d2[_i]) for _i in N}
 
     for _i in N:
         _info = "正常"
@@ -400,25 +405,25 @@ def __(F, N, a, b, d2, n, result2, s2, x2):
 
 
 @app.cell
-def __(F, c, x2val):
+def _(F, c, x2val):
     sum(c[_j] * x2val[_j] for _j in F)
     return
 
 
 @app.cell
-def __(result2):
-    result2.objective_value()
+def _(model1):
+    model1.getObjVal()
     return
 
 
 @app.cell(hide_code=True)
-def __(mo):
+def _(mo):
     mo.md(r"""# 既約不整合部分系""")
     return
 
 
 @app.cell(hide_code=True)
-def __(mo):
+def _(mo):
     mo.md(
         r"""
         既約不整合部分系 (irreducible Inconsistent Subsystem: IIS)
@@ -431,13 +436,13 @@ def __(mo):
 
 
 @app.cell(hide_code=True)
-def __(mo):
+def _(mo):
     mo.md(r"""# 混合問題""")
     return
 
 
 @app.cell(hide_code=True)
-def __(mo):
+def _(mo):
     mo.md(
         r"""
         - 定数
@@ -462,7 +467,7 @@ def __(mo):
 
 
 @app.cell
-def __(multidict):
+def _(multidict):
     def make_data():
         a = {
             (1, 1): 0.25,
@@ -486,9 +491,7 @@ def __(multidict):
 
 
 @app.cell
-def __():
-    from pyscipopt import Model, quicksum, sqrt
-
+def _(pyscipopt):
     def prodmix(I, K, a, p, epsilon, LB):
         """prodmix:  robust production planning using soco
         Parameters:
@@ -500,25 +503,25 @@ def __():
         Returns a model, ready to be solved.
         """
 
-        model = Model()
+        model = pyscipopt.Model()
         x = {i: model.addVar(vtype='C', lb=0.0) for i in I}
         rhs = {k: model.addVar(vtype='C') for k in K}
 
-        model.addCons(quicksum(x[i] for i in I) == 1)
+        model.addCons(pyscipopt.quicksum(x[i] for i in I) == 1)
 
         for k in K:
-            model.addCons(rhs[k] == -LB[k] + quicksum(a[i, k] * x[i] for i in I))
-            model.addCons(quicksum(epsilon ** 2 * x[i] * x[i] for i in I) <= rhs[k] * rhs[k])
+            model.addCons(rhs[k] == -LB[k] + pyscipopt.quicksum(a[i, k] * x[i] for i in I))
+            model.addCons(pyscipopt.quicksum(epsilon ** 2 * x[i] * x[i] for i in I) <= rhs[k] * rhs[k])
 
-        objective = quicksum(p[i] * x[i] for i in I)
+        objective = pyscipopt.quicksum(p[i] * x[i] for i in I)
         model.setObjective(objective, sense="minimize")
 
         return model
-    return Model, prodmix, quicksum, sqrt
+    return (prodmix,)
 
 
 @app.cell
-def __(make_data, prodmix):
+def _(make_data, prodmix):
     _I, _K, _a, _p, _epsilon, _LB = make_data()
     obj_list = []
     for _i in range(5):
@@ -533,7 +536,7 @@ def __(make_data, prodmix):
 
 
 @app.cell
-def __(obj_list, pd):
+def _(obj_list, pd):
     import matplotlib as plt
 
     pd.Series(obj_list).plot()
