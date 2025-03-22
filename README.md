@@ -2,12 +2,6 @@
 
 [https://scmopt.github.io/opt100](https://scmopt.github.io/opt100)
 
-## Jupyter 起動
-
-```
-uv run jupyter lab --no-browser --ServerApp.ip="*" --ServerApp.custom_display_url="http://$(hostname):8888/lab"
-```
-
 ## Marimo 起動
 
 ```
