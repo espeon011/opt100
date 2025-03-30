@@ -26,7 +26,6 @@
           pkgs.python313
           pkgs.uv
           pkgs.ruff
-          pkgs.python313Packages.nbformat
         ];
 
         # numpy 依存ライブラリへの PATH

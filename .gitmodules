@@ -4,3 +4,6 @@
 [submodule "repo-okaduki"]
 	path = repo-okaduki
 	url = https://github.com/okaduki/opt100.git
+[submodule "notebooks/72_スケジューリング問題/jsplib"]
+	path = notebooks/72_スケジューリング問題/jsplib
+	url = https://github.com/tamy0612/JSPLIB.git
