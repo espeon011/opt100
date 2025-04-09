@@ -5,5 +5,6 @@
 - [順列フローショップ問題](./permutation_flow_shop.html)
 - [ジョブショップスケジューリング問題](./jobshop.html)
 - [資源制約付きプロジェクトスケジューリング問題](./resource_constrained.html)
+- [タレントスケジューリング問題](./talent_scheduling.html)
 
 [戻る](../index.md)
