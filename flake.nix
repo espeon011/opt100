@@ -37,6 +37,7 @@
         ]);
 
         shellHook = ''
+          uv sync
           source .venv/bin/activate
         '';
       };
