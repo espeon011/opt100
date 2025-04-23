@@ -2,21 +2,22 @@
 # requires-python = ">=3.13"
 # dependencies = [
 #     "altair==5.5.0",
-#     "amplify-sched==0.2.1",
+#     "amplify-sched==0.2.2",
+#     "didppy==0.9.0",
 #     "highspy==1.10.0",
 #     "marimo",
 #     "ortools==9.12.4544",
 #     "pandas==2.2.3",
 #     "plotly==6.0.1",
 #     "pyarrow==19.0.1",
-#     "pydantic==2.11.1",
+#     "pydantic==2.11.3",
 #     "python-dotenv==1.1.0",
 # ]
 # ///
 
 import marimo
 
-__generated_with = "0.11.31"
+__generated_with = "0.13.0"
 app = marimo.App(width="medium")
 
 
@@ -42,6 +43,7 @@ def _():
     from ortools.sat.python import cp_model
     import highspy
     import amplify_sched
+    import didppy
     return (
         Path,
         Self,
@@ -49,13 +51,13 @@ def _():
         amplify_sched,
         cp_model,
         datetime,
+        didppy,
         dotenv,
         highspy,
         os,
         pandas,
         plotly,
         pprint,
-        pyarrow,
         pydantic,
         random,
     )
@@ -115,7 +117,7 @@ def _(Self, Task, pydantic):
 
                 i = 0
                 for line in f:
-                    if line[0] == '#':
+                    if line[0] == "#":
                         continue
 
                     if n is None or m is None:
@@ -128,18 +130,6 @@ def _(Self, Task, pydantic):
                         machine[i, j] = L[2 * j]
                         proc_time[i, j] = L[2 * j + 1]
                     i += 1
-
-            #     lines = f.readlines()
-
-            # n, m = map(int, lines[0].split())
-            # print(f"{n=}, {m=}")
-
-            # machine, proc_time = {}, {}
-            # for i in range(n):
-            #     L = list(map(int, lines[i + 1].split()))
-            #     for j in range(m):
-            #         machine[i, j] = L[2 * j]
-            #         proc_time[i, j] = L[2 * j + 1]
 
             jobs = []
             for i in range(n):
@@ -161,7 +151,7 @@ def _(pandas, plotly):
             x_end="end",
             y="resource",
             color="job",
-            opacity=0.5
+            opacity=0.5,
         ).update_yaxes(categoryorder="category descending")
     return (plot_plotly,)
 
@@ -169,14 +159,16 @@ def _(pandas, plotly):
 @app.cell
 def _(altair, pandas):
     def plot_altair(df: pandas.DataFrame):
-        return altair.Chart(df).mark_bar().encode(
-            x="start",
-            x2="end",
-            y="resource",
-            color="job",
-        ).properties(
-            width="container",
-            height=400
+        return (
+            altair.Chart(df)
+            .mark_bar()
+            .encode(
+                x="start",
+                x2="end",
+                y="resource",
+                color="job",
+            )
+            .properties(width="container", height=400)
         )
     return (plot_altair,)
 
@@ -186,7 +178,7 @@ def _(Job, data_dir, os, pprint):
     fname1 = os.path.join(data_dir, "ft06.txt")
     jobs1 = Job.from_file(fname1)
     pprint(jobs1)
-    return fname1, jobs1
+    return (jobs1,)
 
 
 @app.cell(hide_code=True)
@@ -201,7 +193,9 @@ def _(Job, cp_model, datetime, pandas):
         def __init__(self, jobs: list[Job]):
             self.jobs = jobs
             self.model = cp_model.CpModel()
-            num_machines = len(set(task.machine for job in self.jobs for task in job.tasks))
+            num_machines = len(
+                set(task.machine for job in self.jobs for task in job.tasks)
+            )
             self.machines = list(range(num_machines))
             horizon = sum(task.time for job in self.jobs for task in job.tasks)
 
@@ -213,7 +207,9 @@ def _(Job, cp_model, datetime, pandas):
                 for id_task, task in enumerate(job.tasks):
                     suffix = f"_{id_job}_{id_task}"
                     start = self.model.new_int_var(0, horizon, "start" + suffix)
-                    interval = self.model.new_fixed_size_interval_var(start, task.time, "interval" + suffix)
+                    interval = self.model.new_fixed_size_interval_var(
+                        start, task.time, "interval" + suffix
+                    )
                     self.starts[id_job][id_task] = start
                     self.intervals[id_job][id_task] = interval
                     machine_to_interval[task.machine].append(interval)
@@ -232,11 +228,14 @@ def _(Job, cp_model, datetime, pandas):
             makespan = self.model.new_int_var(0, horizon, "makespan")
             self.model.add_max_equality(
                 makespan,
-                [self.intervals[id_job][-1].end_expr() for id_job, job in enumerate(self.jobs)],
+                [
+                    self.intervals[id_job][-1].end_expr()
+                    for id_job, job in enumerate(self.jobs)
+                ],
             )
             self.model.minimize(makespan)
 
-        def solve(self, timeout: int = 180):
+        def solve(self, timeout: int = 10):
             self.solver = cp_model.CpSolver()
             self.solver.parameters.log_search_progress = True
             self.solver.parameters.max_time_in_seconds = timeout
@@ -247,7 +246,9 @@ def _(Job, cp_model, datetime, pandas):
             l = []
             for id_job, job in enumerate(self.jobs):
                 for id_task, task in enumerate(job.tasks):
-                    start = self.solver.value(self.intervals[id_job][id_task].start_expr())
+                    start = self.solver.value(
+                        self.intervals[id_job][id_task].start_expr()
+                    )
                     end = start + self.jobs[id_job].tasks[id_task].time
                     l.append(
                         dict(
@@ -255,7 +256,7 @@ def _(Job, cp_model, datetime, pandas):
                             task=f"task{id_task}",
                             resource=f"machine{self.jobs[id_job].tasks[id_task].machine}",
                             start=today + datetime.timedelta(start),
-                            end=today + datetime.timedelta(end)
+                            end=today + datetime.timedelta(end),
                         )
                     )
             df = pandas.DataFrame(l)
@@ -326,6 +327,7 @@ def _(Job, datetime, highspy, pandas):
             self.time = proctime
             self.end = self.start + self.time
 
+
     def _my_add_no_overlap(model: highspy.Highs, tasks: list[_MyInterval]) -> None:
         for idx1, task1 in enumerate(tasks):
             for idx2, task2 in enumerate(tasks):
@@ -335,16 +337,21 @@ def _(Job, datetime, highspy, pandas):
                 big_m = max(task1.ub - task2.lb, task2.ub - task1.lb)
                 tmp1 = model.addBinary()  # [ task1 ] [ task2 ] の順
                 tmp2 = model.addBinary()  # [ task2 ] [ task1 ] の順
-                model.addConstrs([
-                    task1.end - big_m * (1 - tmp1) <= task2.start,
-                    task2.end - big_m * (1 - tmp2) <= task1.start,
-                    tmp1 + tmp2 == 1,
-                ])
+                model.addConstrs(
+                    [
+                        task1.end - big_m * (1 - tmp1) <= task2.start,
+                        task2.end - big_m * (1 - tmp2) <= task1.start,
+                        tmp1 + tmp2 == 1,
+                    ]
+                )
+
 
     class ModelHighs:
         def __init__(self, jobs: list[Job]):
             self.jobs = jobs
-            num_machines = len(set(task.machine for job in self.jobs for task in job.tasks))
+            num_machines = len(
+                set(task.machine for job in self.jobs for task in job.tasks)
+            )
             self.machines = list(range(num_machines))
 
             self.model = highspy.Highs()
@@ -388,7 +395,9 @@ def _(Job, datetime, highspy, pandas):
             l = []
             for id_job, job in enumerate(self.jobs):
                 for id_task, task in enumerate(job.tasks):
-                    start = self.solution.col_value[self.intervals[id_job][id_task].start.index]
+                    start = self.solution.col_value[
+                        self.intervals[id_job][id_task].start.index
+                    ]
                     start = round(start)
                     end = start + self.jobs[id_job].tasks[id_task].time
                     l.append(
@@ -397,7 +406,7 @@ def _(Job, datetime, highspy, pandas):
                             task=f"task{id_task}",
                             resource=f"machine{self.jobs[id_job].tasks[id_task].machine}",
                             start=today + datetime.timedelta(start),
-                            end=today + datetime.timedelta(end)
+                            end=today + datetime.timedelta(end),
                         )
                     )
             df = pandas.DataFrame(l)
@@ -431,19 +440,28 @@ def _(Job, amplify_sched, datetime, dotenv, os, pandas):
     dotenv.load_dotenv(dotenv.find_dotenv(usecwd=True))
     token = os.environ["FIXSTARS_SE"]
 
+
     class ModelAmplifySe:
         def __init__(self, jobs: list[Job]):
             self.jobs = jobs
-            num_machines = len(set(task.machine for job in self.jobs for task in job.tasks))
+            num_machines = len(
+                set(task.machine for job in self.jobs for task in job.tasks)
+            )
             self.machines = list(range(num_machines))
-            self.se_machines = [amplify_sched.Machine(name=f"machine{midx}") for midx in self.machines]
+            self.se_machines = [
+                amplify_sched.Machine(name=f"machine{midx}")
+                for midx in self.machines
+            ]
 
             self.model = amplify_sched.Model()
 
             for semachine in self.se_machines:
                 self.model.machines.add(machine=semachine)
 
-            self.se_jobs = [amplify_sched.Job(name=f"job{jidx}") for jidx, _ in enumerate(self.jobs)]
+            self.se_jobs = [
+                amplify_sched.Job(name=f"job{jidx}")
+                for jidx, _ in enumerate(self.jobs)
+            ]
             for idx, job in enumerate(self.jobs):
                 sejob = self.se_jobs[idx]
                 self.model.jobs.add(sejob)
@@ -453,7 +471,7 @@ def _(Job, amplify_sched, datetime, dotenv, os, pandas):
                     setask.processing_times[semachine] = task.time
                     self.model.jobs[sejob.name].append(setask)
 
-        def solve(self, timeout: int = 1) -> None:
+        def solve(self, timeout: int = 5) -> None:
             self.solution = self.model.solve(token=token, timeout=timeout)
 
         def get_makespan(self) -> int:
@@ -466,7 +484,11 @@ def _(Job, amplify_sched, datetime, dotenv, os, pandas):
             for id_job, job in enumerate(self.jobs):
                 sejob = self.se_jobs[id_job]
                 for id_task, task in enumerate(job.tasks):
-                    start = int(sol_df[sol_df["Job"] == sejob.name]["Start"].reset_index(drop=True)[id_task])
+                    start = int(
+                        sol_df[sol_df["Job"] == sejob.name]["Start"].reset_index(
+                            drop=True
+                        )[id_task]
+                    )
                     end = start + self.jobs[id_job].tasks[id_task].time
                     l.append(
                         dict(
@@ -474,14 +496,14 @@ def _(Job, amplify_sched, datetime, dotenv, os, pandas):
                             task=f"task{id_task}",
                             resource=f"machine{self.jobs[id_job].tasks[id_task].machine}",
                             start=today + datetime.timedelta(start),
-                            end=today + datetime.timedelta(end)
+                            end=today + datetime.timedelta(end),
                         )
                     )
             df = pandas.DataFrame(l)
             df["start"] = pandas.to_datetime(df["start"])
             df["end"] = pandas.to_datetime(df["end"])
             return df
-    return ModelAmplifySe, token
+    return (ModelAmplifySe,)
 
 
 @app.cell
@@ -553,14 +575,14 @@ def _(model2_cpsat, plot_plotly):
 
 @app.cell
 def _():
-    #model2_highs = ModelHighs(jobs2)
-    #model2_highs.solve()
+    # model2_highs = ModelHighs(jobs2)
+    # model2_highs.solve()
     return
 
 
 @app.cell
 def _():
-    #plot_altair(model2_highs.to_df())
+    # plot_altair(model2_highs.to_df())
     return
 
 
@@ -610,7 +632,7 @@ def _(os, parent):
 def _(Job, instance_dir, os):
     fname3 = os.path.join(instance_dir, "ta50")
     jobs3 = Job.from_file(fname3)
-    return fname3, jobs3
+    return (jobs3,)
 
 
 @app.cell
@@ -631,7 +653,7 @@ def _(model3_amplify, plot_plotly):
 @app.cell
 def _(ModelCpSat, jobs3, mo):
     model3_cpsat = ModelCpSat(jobs3)
-    model3_cpsat.solve(timeout=180)
+    model3_cpsat.solve(timeout=10)
 
     mo.md(f"makespan = {round(model3_cpsat.solver.objective_value)}")
     return (model3_cpsat,)
@@ -643,8 +665,383 @@ def _(model3_cpsat, plot_plotly):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""## didp での求解""")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
+        ### 状態
+
+        - $\text{Q}$: set 変数. 配置されていないタスクの集合を表す. 
+        - $\text{tm}_m \space (\forall m: \text{machine})$: 機械ごとに makespan を保持する. 
+        - $\text{tj}_j \space (\forall j: \text{job})$: ジョブごとに makespan を保持する. 
+
+        ### 目的関数
+
+        - $\text{makespan} := \max \{ \text{tm}_m, \text{tj}_j \mid m: \text{machine}, \space j: \text{job} \}$
+
+        ### 更新規則
+
+        - タスク $\text{task} \in Q$ は全ての先行タスクが $Q$ に属していない時配置可能. 
+        - $\text{task}$ が配置された場合, それを $Q$ から取り除く. 
+        - $\text{task}$ が配置された場合, タスクを処理する機械 $m$ とタスクの属するジョブ $j$ に対して以下のように更新する.
+            - $\text{tm}_m \leftarrow \max(\text{tm}_m + t_\text{task}, \space \text{tj}_j + t_\text{task})$
+            - $\text{tj}_j \leftarrow \max(\text{tm}_m + t_\text{task}, \space \text{tj}_j + t_\text{task})$
+        - 上記更新の後, 目的関数を再計算する.
+        """
+    )
+    return
+
+
 @app.cell
-def _():
+def _(Job, didppy):
+    class ModelDidp:
+        def __init__(self, jobs: list[Job]):
+            self.jobs = jobs
+            n_tasks = sum(len(job.tasks) for job in self.jobs)
+            n_machines = len(
+                set(task.machine for job in self.jobs for task in job.tasks)
+            )
+
+            self.model = didppy.Model()
+
+            objtype_task = self.model.add_object_type(number=n_tasks)
+
+            remaining = self.model.add_set_var(
+                object_type=objtype_task, target=list(range(n_tasks))
+            )
+
+            cur_time_per_machine = [
+                # self.model.add_int_var(target=0) for _ in range(n_machines)
+                self.model.add_int_resource_var(target=0, less_is_better=True)
+                for _ in range(n_machines)
+            ]
+            cur_time_per_job = [
+                # self.model.add_int_var(target=0) for _ in self.jobs
+                self.model.add_int_resource_var(target=0, less_is_better=True)
+                for _ in self.jobs
+            ]
+
+            self.model.add_base_case([remaining.is_empty()])
+
+            # task_to_time = self.model.add_int_table(
+            #     [task.time for job in self.jobs for task in job.tasks]
+            # )
+            # task_to_machine = self.model.add_int_table(
+            #     [task.machine for job in self.jobs for task in job.tasks]
+            # )
+
+            precs = []
+            id_jobtask = 0
+            for id_job, job in enumerate(self.jobs):
+                prec = set()
+                for id_task, task in enumerate(job.tasks):
+                    precs.append(prec.copy())
+                    prec.add(id_jobtask)
+                    id_jobtask += 1
+
+            task_to_prec = self.model.add_set_table(
+                precs, object_type=objtype_task
+            )
+
+            id_jobtask = 0
+            for id_job, job in enumerate(self.jobs):
+                for id_task, task in enumerate(job.tasks):
+                    sched = didppy.Transition(
+                        name=f"sched_job{id_job}_task{id_task}",
+                        cost=(
+                            didppy.max(
+                                didppy.IntExpr.state_cost(),
+                                didppy.max(
+                                    cur_time_per_machine[task.machine] + task.time,
+                                    cur_time_per_job[id_job] + task.time,
+                                ),
+                            )
+                        ),
+                        effects=[
+                            (remaining, remaining.remove(id_jobtask)),
+                            (
+                                cur_time_per_job[id_job],
+                                didppy.max(
+                                    cur_time_per_machine[task.machine] + task.time,
+                                    cur_time_per_job[id_job] + task.time,
+                                ),
+                            ),
+                            (
+                                cur_time_per_machine[task.machine],
+                                didppy.max(
+                                    cur_time_per_machine[task.machine] + task.time,
+                                    cur_time_per_job[id_job] + task.time,
+                                ),
+                            ),
+                        ],
+                        preconditions=[
+                            remaining.contains(id_jobtask),
+                            remaining.isdisjoint(task_to_prec[id_jobtask]),
+                        ],
+                    )
+                    self.model.add_transition(sched)
+
+                    id_jobtask += 1
+
+            self.model.add_dual_bound(0)
+
+        def solve(self, timeout=10, threads: int = 8) -> None:
+            self.solver = didppy.CABS(
+                self.model, threads=threads, quiet=False, time_limit=timeout
+            )
+            # self.solver = didppy.LNBS(
+            #     self.model, threads=threads, quiet=False, time_limit=timeout
+            # )
+            self.solution: didppy.Solution = self.solver.search()
+    return (ModelDidp,)
+
+
+@app.cell
+def _(ModelDidp, jobs1, mo):
+    model1_didp = ModelDidp(jobs1)
+    model1_didp.solve(threads=10, timeout=10)
+
+    mo.md(f"makespan = {round(model1_didp.solution.cost)}")
+    return (model1_didp,)
+
+
+@app.cell
+def _(model1_didp):
+    model1_didp.solution.is_optimal
+    return
+
+
+@app.cell
+def _(model1_didp):
+    for _t in model1_didp.solution.transitions:
+        print(_t.name)
+    return
+
+
+@app.cell
+def _(ModelDidp, jobs2, mo):
+    model2_didp = ModelDidp(jobs2)
+    model2_didp.solve(threads=10, timeout=10)
+
+    mo.md(f"makespan = {round(model2_didp.solution.cost)}")
+    return
+
+
+@app.cell
+def _(ModelDidp, jobs3, mo):
+    model3_didp = ModelDidp(jobs3)
+    model3_didp.solve(threads=10, timeout=10)
+
+    mo.md(f"makespan = {round(model3_didp.solution.cost)}")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""## 離接定式化のグラフによる表示""")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
+        JSP は タスクをノード, 依存関係や同時処理禁止規則をエッジで表現したグラフからエッジを選択する問題として表現することができる.
+
+        ### 参考
+
+        - https://acrogenesis.com/or-tools/documentation/user_manual/manual/ls/jobshop_def_data.html
+        - https://zenn.dev/fusic/articles/0fed6d5dfbdeb5
+        """
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
+        ### 定数
+
+        - $J$: ジョブの集合
+        - $M$: マシンの集合
+        - $O$: オペレーションの集合
+        - $O_j$: ジョブ $j$ のオペレーションの集合
+        - $O_m$: マシン $m$ で処理するオペレーションの集合
+        - $t_o$: オペレーション $o$ の処理時間
+
+        ### グラフ
+
+        - ノード $N := O \cup \{ \text{source}, \text{target} \}$
+        - エッジ $E := E^c \cup E^d$
+            - Conjunctive Edges $E^c$: オペレーション $o$ と $o'$ が同じジョブに属しており, $o$ の後に $o'$ を処理しなければならない場合, $(o, o') \in E^c$.
+              また, $o$ があるジョブの最初のオペレーションであるとき $(\text{source}, o) \in E^c$. 
+              $o$ があるジョブの最後のオペレーションであるとき $(o, \text{target}) \in E^c$. 
+            - Disjunctive Edges $E^d$: オペレーション $o$ と $o'$ が同じマシンで処理されるとき, $(o, o') \in E^d$ かつ $(o', o) \in E^d$. 
+              このエッジは双方向のうちどちらかを選択し, 選択されたエッジによりオペレーションの処理順序が定まる. 
+
+        このグラフのエッジで繋がれたノード(オペレーション)の間には処理順序の関係がある. 
+        Conjunctive edge は同一ジョブ内オペレーションの順序関係を表し, 
+        Disjunctive edge は同一マシンで処理するオペレーションの間の順序関係を表す. 
+
+        ### 決定変数
+
+        - $x_e \in \{ 0, 1 \} \space (e \in E)$: エッジ $e$ を選択する場合のみ $1$.
+        - $s_n \in \mathbb{Z} \space (n \in N)$: オペレーションの開始時刻. $\text{source}$ ノードの開始時刻は 0, 処理時間も 0 とする. 
+
+        ### 制約条件
+
+        - $e = (u, v)$ とする. このとき $x_e = 1 \Rightarrow s_u + t_u \leq s_v$
+            - $e \in E^c \Rightarrow x_e = 1$
+            - $(u, v) \in E^d \Rightarrow x_{(u,v)} + x_{(v,u)} = 1$
+
+        ### 目的関数
+
+        - $s_\text{target}$ が makespan を表す. これを最小化する.
+        """
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""## 巡回路制約を用いた実装""")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
+        上記のグラフにマシン自体をノードとして足し, 
+        disjunctive edge のみを辿ってマシンごとに順回路を作成することでマシン内での実行順を記述することができる.
+        """
+    )
+    return
+
+
+@app.cell
+def _(Job, cp_model):
+    class ModelCpSatArc:
+        def __init__(self, jobs: list[Job]):
+            machines = sorted(
+                list(set(task.machine for job in jobs for task in job.tasks))
+            )
+
+            # タスクに 0 から番号を割り振る.
+            # source と target はそれぞれ -1, -2 とする.
+            task_indices = []
+            idx = 0
+            for job in jobs:
+                indices = []
+                for task in job.tasks:
+                    indices.append(idx)
+                    idx += 1
+                task_indices.append(indices)
+
+            all_tasks = [task for job in jobs for task in job.tasks]
+
+            horizon = sum(task.time for job in jobs for task in job.tasks)
+
+            model = cp_model.CpModel()
+
+            edges = {}
+            starts = {}
+
+            # start time
+            starts[-1] = model.new_constant(0)
+            starts[-2] = model.new_int_var(0, horizon, "")
+            for indices in task_indices:
+                for idx in indices:
+                    starts[idx] = model.new_int_var(0, horizon, "")
+
+            # Conjunctive Edges
+            for indices in task_indices:
+                edges[(-1, indices[0])] = model.new_constant(1)
+                edges[(indices[-1], -2)] = model.new_constant(1)
+                for i, _ in enumerate(indices):
+                    if i == 0:
+                        continue
+                    edges[(indices[i - 1], indices[i])] = model.new_constant(1)
+
+            # Disjunctive Edges
+            for m in machines:
+                indices_m = [
+                    idx
+                    for indices, job in zip(task_indices, jobs)
+                    for idx, task in zip(indices, job.tasks)
+                    if task.machine == m
+                ] + [-3 - m]
+
+                edges_m = {
+                    (u, v): model.new_bool_var("")
+                    for u in indices_m
+                    for v in indices_m
+                    if u != v
+                }
+                model.add_circuit((u, v, var) for (u, v), var in edges_m.items())
+
+                edges |= edges_m
+
+            for (u, v), var in edges.items():
+                if u < -2 or v < -2:
+                    continue
+
+                if u == -1:
+                    model.add(starts[u] <= starts[v])
+                else:
+                    model.add(
+                        starts[u] + all_tasks[u].time <= starts[v]
+                    ).only_enforce_if(edges[(u, v)])
+
+            model.minimize(starts[-2])
+
+            self.model = model
+            self.objective = starts[-2]
+
+        def solve(self, timeout: int = 10):
+            self.solver = cp_model.CpSolver()
+            self.solver.parameters.log_search_progress = True
+            self.solver.parameters.max_time_in_seconds = timeout
+            self.status = self.solver.solve(self.model)
+    return (ModelCpSatArc,)
+
+
+@app.cell
+def _(ModelCpSatArc, jobs1, mo):
+    model1_cpsatarc = ModelCpSatArc(jobs1)
+    model1_cpsatarc.solve()
+
+    mo.md(f"makespan = {round(model1_cpsatarc.solver.objective_value)}")
+    return
+
+
+@app.cell
+def _(ModelCpSatArc, jobs3, mo):
+    model3_cpsatarc = ModelCpSatArc(jobs3)
+    model3_cpsatarc.solve(timeout=10)
+
+    mo.md(f"makespan = {round(model3_cpsatarc.solver.objective_value)}")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
+        なんか全然ダメだった...
+
+        区間変数より circuit constraint の方がいい場合もあるらしい[^1]が, 今回はダメそう.
+
+        [^1]: https://d-krupke.github.io/cpsat-primer/04B_advanced_modelling.html
+        """
+    )
     return
 
 

@@ -4,7 +4,7 @@
 #     "highspy==1.10.0",
 #     "marimo",
 #     "ortools==9.12.4544",
-#     "pydantic==2.11.2",
+#     "pydantic==2.11.3",
 # ]
 # ///
 

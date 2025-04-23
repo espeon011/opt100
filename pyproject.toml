@@ -5,7 +5,10 @@ description = "opt100+ study notes"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "marimo>=0.12.9",
+    "marimo[lsp]>=0.13.0",
 ]
 
 [dependency-groups]
+
+[tool.marimo.experimental]
+lsp = true

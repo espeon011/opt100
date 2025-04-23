@@ -5,12 +5,13 @@
 #     "marimo",
 #     "ortools==9.12.4544",
 #     "pydantic==2.11.3",
+#     "ruff==0.11.5",
 # ]
 # ///
 
 import marimo
 
-__generated_with = "0.12.6"
+__generated_with = "0.12.10"
 app = marimo.App(width="medium")
 
 
