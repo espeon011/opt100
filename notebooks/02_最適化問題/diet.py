@@ -2,17 +2,17 @@
 # requires-python = ">=3.12"
 # dependencies = [
 #     "marimo",
-#     "matplotlib==3.10.1",
-#     "ortools==9.12.4544",
-#     "pandas==2.2.3",
-#     "pyscipopt==5.4.1",
+#     "matplotlib==3.10.3",
+#     "ortools==9.13.4784",
+#     "pandas==2.3.0",
+#     "pyscipopt==5.5.0",
 # ]
 # ///
 
 import marimo
 
-__generated_with = "0.11.25"
-app = marimo.App(width="medium")
+__generated_with = "0.14.0"
+app = marimo.App(width="medium", auto_download=["ipynb"])
 
 
 @app.cell
@@ -31,22 +31,22 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-        - 定数
-          - $F$: 商品の集合
-          - $N$: 栄養素の集合
-          - $a_i$: 栄養素 $i$ の 1 日の摂取量の下限
-          - $b_i$: 栄養素 $i$ の 1 日の摂取量の上限
-          - $c_j$: 商品 $j$ の価格
-          - $n_{ij}$: 商品 $j$ に含まれる栄養素 $i$ の量
-        - 決定変数
-          - $x_j \in \mathbb{R}_{\geq 0}$: 商品 $j$ を購入する個数
+    - 定数
+      - $F$: 商品の集合
+      - $N$: 栄養素の集合
+      - $a_i$: 栄養素 $i$ の 1 日の摂取量の下限
+      - $b_i$: 栄養素 $i$ の 1 日の摂取量の上限
+      - $c_j$: 商品 $j$ の価格
+      - $n_{ij}$: 商品 $j$ に含まれる栄養素 $i$ の量
+    - 決定変数
+      - $x_j \in \mathbb{R}_{\geq 0}$: 商品 $j$ を購入する個数
 
-        \begin{align}
-        &\text{minimize} & \sum_{j \in F} c_j x_j \\
-        &\text{s.t.} & a_i \leq \sum_{j \in F} n_{ij} x_j \leq b_i \ (\forall i \in N) \\
-        & & x_j \geq 0 \ (\forall j \in F)
-        \end{align}
-        """
+    \begin{align}
+    &\text{minimize} & \sum_{j \in F} c_j x_j \\
+    &\text{s.t.} & a_i \leq \sum_{j \in F} n_{ij} x_j \leq b_i \ (\forall i \in N) \\
+    & & x_j \geq 0 \ (\forall j \in F)
+    \end{align}
+    """
     )
     return
 
@@ -69,13 +69,13 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-        \begin{align}
-        &\text{maximize} & x_1 + x_2 \\
-        &\text{s.t.} & x_1 - x_2 \leq -1 \\
-        & & - x_1 + x_2 \leq -1 \\
-        & & x_1, x_2 \geq 0
-        \end{align}
-        """
+    \begin{align}
+    &\text{maximize} & x_1 + x_2 \\
+    &\text{s.t.} & x_1 - x_2 \leq -1 \\
+    & & - x_1 + x_2 \leq -1 \\
+    & & x_1, x_2 \geq 0
+    \end{align}
+    """
     )
     return
 
@@ -108,13 +108,13 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-        \begin{align}
-        &\text{maximize} & x_1 + x_2 \\
-        &\text{s.t.} & x_1 - x_2 \geq -1 \\
-        & & - x_1 + x_2 \geq -1 \\
-        & & x_1, x_2 \geq 0
-        \end{align}
-        """
+    \begin{align}
+    &\text{maximize} & x_1 + x_2 \\
+    &\text{s.t.} & x_1 - x_2 \geq -1 \\
+    & & - x_1 + x_2 \geq -1 \\
+    & & x_1, x_2 \geq 0
+    \end{align}
+    """
     )
     return
 
@@ -147,55 +147,54 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-        栄養素摂取量制約の逸脱を許すために摂取量の不足分と超過分を表す決定変数を用意する. 
+    栄養素摂取量制約の逸脱を許すために摂取量の不足分と超過分を表す決定変数を用意する. 
 
-        - $d_i \in \mathbb{R}_{\geq 0}$: 栄養素 $i$ に対する不足変数
-        - $s_i \in \mathbb{R}_{\geq 0}$: 栄養素 $i$ に対する超過変数
+    - $d_i \in \mathbb{R}_{\geq 0}$: 栄養素 $i$ に対する不足変数
+    - $s_i \in \mathbb{R}_{\geq 0}$: 栄養素 $i$ に対する超過変数
 
-        制約を以下のように変更する. 
+    制約を以下のように変更する. 
 
-        $$
-        a_i - d_i \leq \sum_{j \in F} n_{ij} x_j \leq b_i + s_i \ (\forall i \in N)
-        $$
+    $$
+    a_i - d_i \leq \sum_{j \in F} n_{ij} x_j \leq b_i + s_i \ (\forall i \in N)
+    $$
 
-        目的関数には以下の逸脱ペナルティを追加する($M$ は十分大きな定数). 
+    目的関数には以下の逸脱ペナルティを追加する($M$ は十分大きな定数). 
 
-        $$
-        \text{minimize} \sum_{j \in F} c_j x_j + M \sum_{i \in N} (d_i + s_i)
-        $$
+    $$
+    \text{minimize} \sum_{j \in F} c_j x_j + M \sum_{i \in N} (d_i + s_i)
+    $$
 
-        結果, 以下のような定式化になる. 
+    結果, 以下のような定式化になる. 
 
-        \begin{align}
-        &\text{minimize} & \sum_{j \in F} c_j x_j + M \sum_{i \in N} (d_i + s_i) \\
-        &\text{s.t.} & a_i - d_i \leq \sum_{j \in F} n_{ij} x_j \leq b_i + s_i \ (\forall i \in N) \\
-        & & x_j \geq 0 \ (\forall j \in F)
-        \end{align}
-        """
+    \begin{align}
+    &\text{minimize} & \sum_{j \in F} c_j x_j + M \sum_{i \in N} (d_i + s_i) \\
+    &\text{s.t.} & a_i - d_i \leq \sum_{j \in F} n_{ij} x_j \leq b_i + s_i \ (\forall i \in N) \\
+    & & x_j \geq 0 \ (\forall j \in F)
+    \end{align}
+    """
     )
     return
 
 
+@app.function
+# https://scmopt.github.io/manual/15mypulp.html#multidict%E9%96%A2%E6%95%B0
+
+
+def multidict(d: dict):
+    ret = [list(d.keys())]
+    for k, arr in d.items():
+        if type(arr) is not list:
+            arr = [arr]
+        append_num = 1 + len(arr) - len(ret)
+        if append_num > 0:
+            ret = ret + [{} for _ in range(append_num)]
+        for i, val in enumerate(arr):
+            ret[i + 1][k] = val
+    return ret
+
+
 @app.cell
 def _():
-    # https://scmopt.github.io/manual/15mypulp.html#multidict%E9%96%A2%E6%95%B0
-
-    def multidict(d: dict):
-        ret = [list(d.keys())]
-        for k, arr in d.items():
-            if type(arr) is not list:
-                arr = [arr]
-            append_num = 1 + len(arr) - len(ret)
-            if append_num > 0:
-                ret = ret + [{} for _ in range(append_num)]
-            for i, val in enumerate(arr):
-                ret[i + 1][k] = val
-        return ret
-    return (multidict,)
-
-
-@app.cell
-def _(multidict):
     _I, _d = multidict({1: 80, 2: 270, 3: 250, 4: 160, 5: 180})
     _J, _M, _N = multidict({1: [500, 600], 2: [800, 500], 3: [500, 100]})
     print(_I, _d)
@@ -204,7 +203,7 @@ def _(multidict):
 
 
 @app.cell
-def _(multidict):
+def _():
     F, c, n = multidict(
         {
             "CQPounder": [
@@ -297,8 +296,18 @@ def _(multidict):
 
 
 @app.cell
-def _(multidict):
-    N, a, b = multidict({'Cal': [2000, 3000], 'Carbo': [300, 375], 'Protein': [50, 60], 'VitA': [500, 750], 'VitC': [85, 100], 'Calc': [660, 900], 'Iron': [6.0, 7.5]})
+def _():
+    N, a, b = multidict(
+        {
+            "Cal": [2000, 3000],
+            "Carbo": [300, 375],
+            "Protein": [50, 60],
+            "VitA": [500, 750],
+            "VitC": [85, 100],
+            "Calc": [660, 900],
+            "Iron": [6.0, 7.5],
+        }
+    )
     return N, a, b
 
 
@@ -311,18 +320,24 @@ def _(F, N, a, b, c, mathopt, n):
     d1 = {_i: model0.add_variable(lb=0.0, name=f"d[{_i}]") for _i in N}
 
     for _i in N:
-        model0.add_linear_constraint(sum((n[_j][_i] * x1[_j] for _j in F)) >= a[_i] - d1[_i])
-        model0.add_linear_constraint(sum((n[_j][_i] * x1[_j] for _j in F)) <= b[_i] - s1[_i])
+        model0.add_linear_constraint(
+            sum((n[_j][_i] * x1[_j] for _j in F)) >= a[_i] - d1[_i]
+        )
+        model0.add_linear_constraint(
+            sum((n[_j][_i] * x1[_j] for _j in F)) <= b[_i] - s1[_i]
+        )
 
     _M = 9999
-    _objective = sum((c[_j] * x1[_j] for _j in F)) + _M * sum((d1[_i] + s1[_i] for _i in N))
+    _objective = sum((c[_j] * x1[_j] for _j in F)) + _M * sum(
+        (d1[_i] + s1[_i] for _i in N)
+    )
     model0.minimize(_objective)
 
     _params = mathopt.SolveParameters(enable_output=True)
     result1 = mathopt.solve(model0, mathopt.SolverType.GSCIP, params=_params)
     if result1.termination.reason != mathopt.TerminationReason.OPTIMAL:
         raise RuntimeError(f"model failed to solve: {result1.termination}")
-    return d1, model0, result1, s1, x1
+    return d1, result1, s1, x1
 
 
 @app.cell
@@ -333,10 +348,15 @@ def _(F, N, a, b, d1, n, result1, s1, x1):
 
     for _i in N:
         _info = "正常"
-        if sum(n[_j][_i] * x1val[_j] for _j in F) < a[_i] - d1val[_i] or sum(n[_j][_i] * x1val[_j] for _j in F) > b[_i] - s1val[_i]:
+        if (
+            sum(n[_j][_i] * x1val[_j] for _j in F) < a[_i] - d1val[_i]
+            or sum(n[_j][_i] * x1val[_j] for _j in F) > b[_i] - s1val[_i]
+        ):
             _info = "違反"
-        print(f"[{_info}]栄養素 {_i:<7} 摂取量 {sum(n[_j][_i] * x1val[_j] for _j in F):>7.2f}, 正常範囲: [{a[_i]:>6.1f}, {b[_i]:>6.1f}]")
-    return d1val, s1val, x1val
+        print(
+            f"[{_info}]栄養素 {_i:<7} 摂取量 {sum(n[_j][_i] * x1val[_j] for _j in F):>7.2f}, 正常範囲: [{a[_i]:>6.1f}, {b[_i]:>6.1f}]"
+        )
+    return (x1val,)
 
 
 @app.cell
@@ -372,10 +392,14 @@ def _(F, N, a, b, c, n, pyscipopt):
     d2 = {_i: model1.addVar(vtype="C", lb=0.0) for _i in N}
 
     for _i in N:
-        model1.addCons(pyscipopt.quicksum((n[_j][_i] * x2[_j] for _j in F)) >= a[_i] - d2[_i])
-        model1.addCons(pyscipopt.quicksum((n[_j][_i] * x2[_j] for _j in F)) <= b[_i] - s2[_i])
+        model1.addCons(
+            pyscipopt.quicksum((n[_j][_i] * x2[_j] for _j in F)) >= a[_i] - d2[_i]
+        )
+        model1.addCons(
+            pyscipopt.quicksum((n[_j][_i] * x2[_j] for _j in F)) <= b[_i] - s2[_i]
+        )
 
-    _M = 999 # ここを大きくし過ぎると計算時間が肥大化する. 
+    _M = 999  # ここを大きくし過ぎると計算時間が肥大化する.
     _objective = 0
     for _i in N:
         _s2q = model1.addVar(vtype="C", lb=0.0)
@@ -398,10 +422,15 @@ def _(F, N, a, b, d2, model1, n, s2, x2):
 
     for _i in N:
         _info = "正常"
-        if sum(n[_j][_i] * x2val[_j] for _j in F) < a[_i] - d2val[_i] or sum(n[_j][_i] * x2val[_j] for _j in F) > b[_i] - s2val[_i]:
+        if (
+            sum(n[_j][_i] * x2val[_j] for _j in F) < a[_i] - d2val[_i]
+            or sum(n[_j][_i] * x2val[_j] for _j in F) > b[_i] - s2val[_i]
+        ):
             _info = "違反"
-        print(f"[{_info}]栄養素 {_i:<7} 摂取量 {sum(n[_j][_i] * x2val[_j] for _j in F):>7.2f}, 正常範囲: [{a[_i]:>6.1f}, {b[_i]:>6.1f}]")
-    return d2val, s2val, x2val
+        print(
+            f"[{_info}]栄養素 {_i:<7} 摂取量 {sum(n[_j][_i] * x2val[_j] for _j in F):>7.2f}, 正常範囲: [{a[_i]:>6.1f}, {b[_i]:>6.1f}]"
+        )
+    return (x2val,)
 
 
 @app.cell
@@ -426,11 +455,11 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-        既約不整合部分系 (irreducible Inconsistent Subsystem: IIS)
+    既約不整合部分系 (irreducible Inconsistent Subsystem: IIS)
 
-        - 実行不可能
-        - 上下限もしくは制約を1つ除くと実行可能になる
-        """
+    - 実行不可能
+    - 上下限もしくは制約を1つ除くと実行可能になる
+    """
     )
     return
 
@@ -445,49 +474,47 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-        - 定数
-          - $I$: 原料の集合
-          - $K$: 成分の集合
-          - $p_i$: 原料 $i$ の価格
-          - $a_{ik}$: 原料 $i$ に含まれる成分 $k$ の比率
-          - $LB_k$: 製品に含まれる成分 $k$ の比率の下限
-          - $\varepsilon$: 誤差の 2 乗和の上限
-        - 決定変数
-          - $x_i$: 原料 $i$ の含有比率
+    - 定数
+      - $I$: 原料の集合
+      - $K$: 成分の集合
+      - $p_i$: 原料 $i$ の価格
+      - $a_{ik}$: 原料 $i$ に含まれる成分 $k$ の比率
+      - $LB_k$: 製品に含まれる成分 $k$ の比率の下限
+      - $\varepsilon$: 誤差の 2 乗和の上限
+    - 決定変数
+      - $x_i$: 原料 $i$ の含有比率
 
-        \begin{align}
-        &\text{minimize} & \sum_{i \in I} p_i x_i \\
-        &\text{s.t.} & \sum_{i \in I} x_i = 1 \\
-        & & \sqrt{\varepsilon^2 \sum_{i \in I} x_i^2} \leq -LB_k + \sum_{i \in I} a_{ik} x_i \quad (\forall k \in K) \\
-        & & x_i \geq 0 \quad (\forall i \in I)
-        \end{align}
-        """
+    \begin{align}
+    &\text{minimize} & \sum_{i \in I} p_i x_i \\
+    &\text{s.t.} & \sum_{i \in I} x_i = 1 \\
+    & & \sqrt{\varepsilon^2 \sum_{i \in I} x_i^2} \leq -LB_k + \sum_{i \in I} a_{ik} x_i \quad (\forall k \in K) \\
+    & & x_i \geq 0 \quad (\forall i \in I)
+    \end{align}
+    """
     )
     return
 
 
-@app.cell
-def _(multidict):
-    def make_data():
-        a = {
-            (1, 1): 0.25,
-            (1, 2): 0.15,
-            (1, 3): 0.2,
-            (2, 1): 0.3,
-            (2, 2): 0.3,
-            (2, 3): 0.1,
-            (3, 1): 0.15,
-            (3, 2): 0.65,
-            (3, 3): 0.05,
-            (4, 1): 0.1,
-            (4, 2): 0.05,
-            (4, 3): 0.8,
-        }
-        epsilon = 0.01
-        I, p = multidict({1: 5, 2: 6, 3: 8, 4: 20})
-        K, LB = multidict({1: 0.2, 2: 0.3, 3: 0.2})
-        return I, K, a, p, epsilon, LB
-    return (make_data,)
+@app.function
+def make_data():
+    a = {
+        (1, 1): 0.25,
+        (1, 2): 0.15,
+        (1, 3): 0.2,
+        (2, 1): 0.3,
+        (2, 2): 0.3,
+        (2, 3): 0.1,
+        (3, 1): 0.15,
+        (3, 2): 0.65,
+        (3, 3): 0.05,
+        (4, 1): 0.1,
+        (4, 2): 0.05,
+        (4, 3): 0.8,
+    }
+    epsilon = 0.01
+    I, p = multidict({1: 5, 2: 6, 3: 8, 4: 20})
+    K, LB = multidict({1: 0.2, 2: 0.3, 3: 0.2})
+    return I, K, a, p, epsilon, LB
 
 
 @app.cell
@@ -504,14 +531,19 @@ def _(pyscipopt):
         """
 
         model = pyscipopt.Model()
-        x = {i: model.addVar(vtype='C', lb=0.0) for i in I}
-        rhs = {k: model.addVar(vtype='C') for k in K}
+        x = {i: model.addVar(vtype="C", lb=0.0) for i in I}
+        rhs = {k: model.addVar(vtype="C") for k in K}
 
         model.addCons(pyscipopt.quicksum(x[i] for i in I) == 1)
 
         for k in K:
-            model.addCons(rhs[k] == -LB[k] + pyscipopt.quicksum(a[i, k] * x[i] for i in I))
-            model.addCons(pyscipopt.quicksum(epsilon ** 2 * x[i] * x[i] for i in I) <= rhs[k] * rhs[k])
+            model.addCons(
+                rhs[k] == -LB[k] + pyscipopt.quicksum(a[i, k] * x[i] for i in I)
+            )
+            model.addCons(
+                pyscipopt.quicksum(epsilon**2 * x[i] * x[i] for i in I)
+                <= rhs[k] * rhs[k]
+            )
 
         objective = pyscipopt.quicksum(p[i] * x[i] for i in I)
         model.setObjective(objective, sense="minimize")
@@ -521,7 +553,7 @@ def _(pyscipopt):
 
 
 @app.cell
-def _(make_data, prodmix):
+def _(prodmix):
     _I, _K, _a, _p, _epsilon, _LB = make_data()
     obj_list = []
     for _i in range(5):
@@ -540,7 +572,7 @@ def _(obj_list, pd):
     import matplotlib as plt
 
     pd.Series(obj_list).plot()
-    return (plt,)
+    return
 
 
 if __name__ == "__main__":

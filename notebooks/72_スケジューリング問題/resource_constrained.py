@@ -1,16 +1,16 @@
 # /// script
 # requires-python = ">=3.13"
 # dependencies = [
-#     "highspy==1.10.0",
+#     "highspy==1.11.0",
 #     "marimo",
-#     "ortools==9.12.4544",
-#     "pydantic==2.11.3",
+#     "ortools==9.13.4784",
+#     "pydantic==2.11.7",
 # ]
 # ///
 
 import marimo
 
-__generated_with = "0.12.4"
+__generated_with = "0.14.0"
 app = marimo.App(width="medium")
 
 
@@ -41,19 +41,19 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-        ### 入力データ
+    ### 入力データ
 
-        - ジョブの集合 $\mathrm{Job}$, 添字は $j, k$
-        - 資源の集合 $\mathrm{Res}$, 添字は $r$
-        - ジョブ間の時間成約を表す集合 $\mathrm{Prec} \subset \mathrm{Job} \times \mathrm{Job}$
-            - $(j,k) \in \mathrm{Prec}$ のとき ジョブ $j$ とジョブ $k$ の時刻間に何かしらの関係がある. 
-        - 最大の期数 $T$, 添字は $t, s \in \{1, \dots, T \}$
-            - 期間 $t$ は時刻 $t-1$ から時刻 $t$ までであるとする. 
-        - ジョブ $j$ の処理時間 $p_j$
-        - ジョブ $j$ を期 $t$ に開始したときの費用 $\mathrm{Cost}_{jt}$
-        - ジョブ $j$ の開始後 $t$ 期経過時の処理に要する資源 $r$ の量 $a_{jrt}$
-        - 期 $t$ における資源 $r$ の使用可能量上限 $\mathrm{RUB}_{rt}$
-        """
+    - ジョブの集合 $\mathrm{Job}$, 添字は $j, k$
+    - 資源の集合 $\mathrm{Res}$, 添字は $r$
+    - ジョブ間の時間成約を表す集合 $\mathrm{Prec} \subset \mathrm{Job} \times \mathrm{Job}$
+        - $(j,k) \in \mathrm{Prec}$ のとき ジョブ $j$ とジョブ $k$ の時刻間に何かしらの関係がある. 
+    - 最大の期数 $T$, 添字は $t, s \in \{1, \dots, T \}$
+        - 期間 $t$ は時刻 $t-1$ から時刻 $t$ までであるとする. 
+    - ジョブ $j$ の処理時間 $p_j$
+    - ジョブ $j$ を期 $t$ に開始したときの費用 $\mathrm{Cost}_{jt}$
+    - ジョブ $j$ の開始後 $t$ 期経過時の処理に要する資源 $r$ の量 $a_{jrt}$
+    - 期 $t$ における資源 $r$ の使用可能量上限 $\mathrm{RUB}_{rt}$
+    """
     )
     return
 
@@ -62,10 +62,10 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-        ### 変数
+    ### 変数
 
-        - $x_{jt} \in \{ 0, 1 \}$: ジョブ $j$ を期 $t$ に開始するとき $1$, それ以外は $0$
-        """
+    - $x_{jt} \in \{ 0, 1 \}$: ジョブ $j$ を期 $t$ に開始するとき $1$, それ以外は $0$
+    """
     )
     return
 
@@ -74,12 +74,12 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-        ### 目的関数
+    ### 目的関数
 
-        $$
-        \min \sum_{j \in \mathrm{Job}} \sum_{t=1}^{T-p_j+1} \mathrm{Cost}_{jt} x_{jt}
-        $$
-        """
+    $$
+    \min \sum_{j \in \mathrm{Job}} \sum_{t=1}^{T-p_j+1} \mathrm{Cost}_{jt} x_{jt}
+    $$
+    """
     )
     return
 
@@ -88,138 +88,133 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-        ### 制約条件
+    ### 制約条件
 
-        - ジョブ遂行成約:
-          $\sum_{t=1}^{T-p_j+1} x_{jt} = 1 \quad (\forall j \in \mathrm{Job})$
-        - 資源成約:
-          $\sum_{j \in \mathrm{Job}} \sum_{s = \max(t - p_j + 1, 1)}^{\min(t, T - p_j + 1)} a_{jr,t-s} x_{js} \leq \mathrm{RUB}_{rt} \quad (\forall r \in \mathrm{Res}, \forall t \in \{ 1, \dots, T \})$
-        - 時間制約: $\sum_{t=2}^{T-p_j+1} (t-1)x_{jt} + p_j \leq \sum_{t=2}^{T-p_k+1} (t-1) x_{kt} \quad (\forall (j,k) \in \mathrm{Prec})$
-        """
+    - ジョブ遂行成約:
+      $\sum_{t=1}^{T-p_j+1} x_{jt} = 1 \quad (\forall j \in \mathrm{Job})$
+    - 資源成約:
+      $\sum_{j \in \mathrm{Job}} \sum_{s = \max(t - p_j + 1, 1)}^{\min(t, T - p_j + 1)} a_{jr,t-s} x_{js} \leq \mathrm{RUB}_{rt} \quad (\forall r \in \mathrm{Res}, \forall t \in \{ 1, \dots, T \})$
+    - 時間制約: $\sum_{t=2}^{T-p_j+1} (t-1)x_{jt} + p_j \leq \sum_{t=2}^{T-p_k+1} (t-1) x_{kt} \quad (\forall (j,k) \in \mathrm{Prec})$
+    """
     )
     return
 
 
-@app.cell
-def multidict():
-    # https://scmopt.github.io/manual/15mypulp.html#multidict%E9%96%A2%E6%95%B0
-
-    def multidict(d: dict):
-        ret = [list(d.keys())]
-        for k, arr in d.items():
-            if type(arr) is not list:
-                arr = [arr]
-            append_num = 1 + len(arr) - len(ret)
-            if append_num > 0:
-                ret = ret + [{} for _ in range(append_num)]
-            for i, val in enumerate(arr):
-                ret[i + 1][k] = val
-        return ret
-    return (multidict,)
+@app.function
+# https://scmopt.github.io/manual/15mypulp.html#multidict%E9%96%A2%E6%95%B0
 
 
-@app.cell
-def make_1r(multidict):
-    def make_1r():
-        J, p = multidict(
-            {  # jobs, processing times
-                1: 1,
-                2: 3,
-                3: 2,
-                4: 2,
-            }
-        )
-        P = [(1, 2), (1, 3), (2, 4)]
-        R = [1]
-        T = 6
-        c = {}
-        for j in J:
-            for t in range(1, T - p[j] + 2):
-                c[j, t] = 1 * (t - 1 + p[j])
-        a = {
-            (1, 1, 0): 2,
-            (2, 1, 0): 2,
-            (2, 1, 1): 1,
-            (2, 1, 2): 1,
-            (3, 1, 0): 1,
-            (3, 1, 1): 1,
-            (4, 1, 0): 1,
-            (4, 1, 1): 2,
+def multidict(d: dict):
+    ret = [list(d.keys())]
+    for k, arr in d.items():
+        if type(arr) is not list:
+            arr = [arr]
+        append_num = 1 + len(arr) - len(ret)
+        if append_num > 0:
+            ret = ret + [{} for _ in range(append_num)]
+        for i, val in enumerate(arr):
+            ret[i + 1][k] = val
+    return ret
+
+
+@app.function
+def make_1r():
+    J, p = multidict(
+        {  # jobs, processing times
+            1: 1,
+            2: 3,
+            3: 2,
+            4: 2,
         }
-        RUB = {(1, 1): 2, (1, 2): 2, (1, 3): 1, (1, 4): 2, (1, 5): 2, (1, 6): 2}
-        return (J, P, R, T, p, c, a, RUB)
-    return (make_1r,)
+    )
+    P = [(1, 2), (1, 3), (2, 4)]
+    R = [1]
+    T = 6
+    c = {}
+    for j in J:
+        for t in range(1, T - p[j] + 2):
+            c[j, t] = 1 * (t - 1 + p[j])
+    a = {
+        (1, 1, 0): 2,
+        (2, 1, 0): 2,
+        (2, 1, 1): 1,
+        (2, 1, 2): 1,
+        (3, 1, 0): 1,
+        (3, 1, 1): 1,
+        (4, 1, 0): 1,
+        (4, 1, 1): 2,
+    }
+    RUB = {(1, 1): 2, (1, 2): 2, (1, 3): 1, (1, 4): 2, (1, 5): 2, (1, 6): 2}
+    return (J, P, R, T, p, c, a, RUB)
 
 
-@app.cell
-def make_2r(multidict):
-    def make_2r():
-        J, p = multidict(
-            {  # jobs, processing times
-                1: 2,
-                2: 2,
-                3: 3,
-                4: 2,
-                5: 5,
-            }
-        )
-        P = [(1, 2), (1, 3), (2, 4)]
-        R = [1, 2]
-        T = 6
-        c = {}
-        for j in J:
-            for t in range(1, T - p[j] + 2):
-                c[j, t] = 1 * (t - 1 + p[j])
-        a = {
-            # resource 1:
-            (1, 1, 0): 2,
-            (1, 1, 1): 2,
-            (2, 1, 0): 1,
-            (2, 1, 1): 1,
-            (3, 1, 0): 1,
-            (3, 1, 1): 1,
-            (3, 1, 2): 1,
-            (4, 1, 0): 1,
-            (4, 1, 1): 1,
-            (5, 1, 0): 0,
-            (5, 1, 1): 0,
-            (5, 1, 2): 1,
-            (5, 1, 3): 0,
-            (5, 1, 4): 0,
-            # resource 2:
-            (1, 2, 0): 1,
-            (1, 2, 1): 0,
-            (2, 2, 0): 1,
-            (2, 2, 1): 1,
-            (3, 2, 0): 0,
-            (3, 2, 1): 0,
-            (3, 2, 2): 0,
-            (4, 2, 0): 1,
-            (4, 2, 1): 2,
-            (5, 2, 0): 1,
-            (5, 2, 1): 2,
-            (5, 2, 2): 1,
-            (5, 2, 3): 1,
-            (5, 2, 4): 1,
+@app.function
+def make_2r():
+    J, p = multidict(
+        {  # jobs, processing times
+            1: 2,
+            2: 2,
+            3: 3,
+            4: 2,
+            5: 5,
         }
-        RUB = {
-            (1, 1): 2,
-            (1, 2): 2,
-            (1, 3): 2,
-            (1, 4): 2,
-            (1, 5): 2,
-            (1, 6): 2,
-            (1, 7): 2,
-            (2, 1): 2,
-            (2, 2): 2,
-            (2, 3): 2,
-            (2, 4): 2,
-            (2, 5): 2,
-            (2, 6): 2,
-            (2, 7): 2,
-        }
-        return (J, P, R, T, p, c, a, RUB)
-    return (make_2r,)
+    )
+    P = [(1, 2), (1, 3), (2, 4)]
+    R = [1, 2]
+    T = 6
+    c = {}
+    for j in J:
+        for t in range(1, T - p[j] + 2):
+            c[j, t] = 1 * (t - 1 + p[j])
+    a = {
+        # resource 1:
+        (1, 1, 0): 2,
+        (1, 1, 1): 2,
+        (2, 1, 0): 1,
+        (2, 1, 1): 1,
+        (3, 1, 0): 1,
+        (3, 1, 1): 1,
+        (3, 1, 2): 1,
+        (4, 1, 0): 1,
+        (4, 1, 1): 1,
+        (5, 1, 0): 0,
+        (5, 1, 1): 0,
+        (5, 1, 2): 1,
+        (5, 1, 3): 0,
+        (5, 1, 4): 0,
+        # resource 2:
+        (1, 2, 0): 1,
+        (1, 2, 1): 0,
+        (2, 2, 0): 1,
+        (2, 2, 1): 1,
+        (3, 2, 0): 0,
+        (3, 2, 1): 0,
+        (3, 2, 2): 0,
+        (4, 2, 0): 1,
+        (4, 2, 1): 2,
+        (5, 2, 0): 1,
+        (5, 2, 1): 2,
+        (5, 2, 2): 1,
+        (5, 2, 3): 1,
+        (5, 2, 4): 1,
+    }
+    RUB = {
+        (1, 1): 2,
+        (1, 2): 2,
+        (1, 3): 2,
+        (1, 4): 2,
+        (1, 5): 2,
+        (1, 6): 2,
+        (1, 7): 2,
+        (2, 1): 2,
+        (2, 2): 2,
+        (2, 3): 2,
+        (2, 4): 2,
+        (2, 5): 2,
+        (2, 6): 2,
+        (2, 7): 2,
+    }
+    return (J, P, R, T, p, c, a, RUB)
 
 
 @app.cell(hide_code=True)
@@ -250,23 +245,26 @@ def _(highspy):
 
                 # start time constraints
                 self.model.addConstr(
-                    sum((t - 1) * self.x[j, t] for t in range(2, T - p[j] + 2)) == self.s[j]
+                    sum((t - 1) * self.x[j, t] for t in range(2, T - p[j] + 2))
+                    == self.s[j]
                 )
 
             # resource upper bound constraints
-            for t in range(1, T+1):
+            for t in range(1, T + 1):
                 for r in R:
                     self.model.addConstr(
                         sum(
                             a[j, r, t - t_] * self.x[j, t_]
                             for j in J
-                            for t_ in range(max(t - p[j] + 1, 1), min(t + 1, T - p[j] + 2))
+                            for t_ in range(
+                                max(t - p[j] + 1, 1), min(t + 1, T - p[j] + 2)
+                            )
                         )
                         <= RUB[r, t]
                     )
 
             # time (precedence) constraints, i.e., s[k]-s[j] >= p[j]
-            for (j, k) in P:
+            for j, k in P:
                 self.model.addConstr(self.s[k] - self.s[j] >= p[j])
 
             self.objective = sum(c[j, t] * self.x[j, t] for (j, t) in self.x)
@@ -281,19 +279,19 @@ def _(highspy):
 
 
 @app.cell
-def _(Model1Highs, make_1r):
+def _(Model1Highs):
     (J1, P1, R1, T1, p1, c1, a1, RUB1) = make_1r()
     model1 = Model1Highs(J1, P1, R1, T1, p1, c1, a1, RUB1)
 
     model1.solve()
-    return J1, P1, R1, RUB1, T1, a1, c1, model1, p1
+    return (model1,)
 
 
 @app.cell
 def _(model1):
-    print (f"Opt.value = {model1.info.objective_function_value}")
+    print(f"Opt.value = {model1.info.objective_function_value}")
 
-    for (_j, _t) in model1.x:
+    for _j, _t in model1.x:
         _val = model1.solution.col_value[model1.x[_j, _t].index]
         if _val > 0.5:
             print(f"x[{_j},{_t}] = {_val}")
@@ -305,19 +303,19 @@ def _(model1):
 
 
 @app.cell
-def _(Model1Highs, make_2r):
+def _(Model1Highs):
     (J2, P2, R2, T2, p2, c2, a2, RUB2) = make_2r()
     model2 = Model1Highs(J2, P2, R2, T2, p2, c2, a2, RUB2)
 
     model2.solve()
-    return J2, P2, R2, RUB2, T2, a2, c2, model2, p2
+    return (model2,)
 
 
 @app.cell
 def _(model2):
-    print (f"Opt.value = {model2.info.objective_function_value}")
+    print(f"Opt.value = {model2.info.objective_function_value}")
 
-    for (_j, _t) in model2.x:
+    for _j, _t in model2.x:
         _val = model2.solution.col_value[model2.x[_j, _t].index]
         if _val > 0.5:
             print(f"x[{_j},{_t}] = {_val}")
@@ -338,26 +336,26 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-        ### kobe-scheduling
+    ### kobe-scheduling
 
-        - リンク: https://github.com/ptal/kobe-scheduling
-        - データフォーマットはデータによって異なり, 特に説明もない. 
-          https://github.com/ptal/kobe-scheduling/data/rcpsp/patterson.rcp であれば (多分)
-            - 1 行目: ジョブの数, リソースの種類
-            - 3 行目: 各リソースの上限値
-            - 5 行目以降: ジョブの情報が並ぶ. 
-              処理時間, [リソースの消費数, ...], 後続ジョブ数, [後続ジョブ番号, ...]
-        - 目的関数は makespan (多分)
-        """
+    - リンク: https://github.com/ptal/kobe-scheduling
+    - データフォーマットはデータによって異なり, 特に説明もない. 
+      https://github.com/ptal/kobe-scheduling/data/rcpsp/patterson.rcp であれば (多分)
+        - 1 行目: ジョブの数, リソースの種類
+        - 3 行目: 各リソースの上限値
+        - 5 行目以降: ジョブの情報が並ぶ. 
+          処理時間, [リソースの消費数, ...], 後続ジョブ数, [後続ジョブ番号, ...]
+    - 目的関数は makespan (多分)
+    """
     )
     return
 
 
 @app.cell
-def _(Path, __file__, os):
+def _(Path, os):
     parent = str(Path(os.path.abspath(__file__)).parent)
     data_dir = Path(parent, "kobe-scheduling", "data", "rcpsp", "patterson.rcp")
-    return data_dir, parent
+    return (data_dir,)
 
 
 @app.cell
@@ -368,15 +366,17 @@ def _(Self, pydantic):
         time: int
         res_usages: list[int]
 
+
     class Resource(pydantic.BaseModel):
         model_config = pydantic.ConfigDict(frozen=True)
         ub: int
+
 
     class Condition(pydantic.BaseModel):
         model_config = pydantic.ConfigDict(frozen=True)
         jobs: list[Job]
         ress: list[Resource]
-        prec: set[tuple[int,int]]
+        prec: set[tuple[int, int]]
 
         @staticmethod
         def from_file(filepath) -> Self:
@@ -392,7 +392,7 @@ def _(Self, pydantic):
 
                 jobs = []
                 job_id = 0
-                while (line := f.readline()):
+                while line := f.readline():
                     datas = list(map(lambda s: int(s), line.split()))
                     if len(datas) == 0:
                         continue
@@ -414,7 +414,7 @@ def _(Self, pydantic):
                     job_id += 1
 
             return Condition(jobs=jobs, ress=ress, prec=prec)
-    return Condition, Job, Resource
+    return (Condition,)
 
 
 @app.cell
@@ -443,12 +443,19 @@ def _(Condition, highspy):
             # e[j]: ジョブ j の終了期 "の次の期"
             self.e = [self.s[jdx] + job.time for jdx, job in enumerate(cond.jobs)]
             # x[j][t]: ジョブ j を期 t に開始する時だけ 1
-            self.x = [[self.model.addBinary() for t in range(horizon)] for job in cond.jobs]
+            self.x = [
+                [self.model.addBinary() for t in range(horizon)]
+                for job in cond.jobs
+            ]
 
             # 各ジョブは必ず処理される
             for jdx, job in enumerate(cond.jobs):
                 self.model.addConstr(
-                    sum(self.x[jdx][t] for t in range(horizon - max(0, job.time - 1))) == 1
+                    sum(
+                        self.x[jdx][t]
+                        for t in range(horizon - max(0, job.time - 1))
+                    )
+                    == 1
                 )
                 for t in range(horizon - max(0, job.time - 1), horizon):
                     self.model.addConstr(self.x[jdx][t] == 0)
@@ -473,9 +480,11 @@ def _(Condition, highspy):
                             sum(
                                 self.x[id_job][_t]
                                 for _t in range(max(0, t - job.time + 1), t + 1)
-                            ) * job.res_usages[id_res]
+                            )
+                            * job.res_usages[id_res]
                             for id_job, job in enumerate(cond.jobs)
-                        ) <= res.ub
+                        )
+                        <= res.ub
                     )
 
             # 目的関数: makespan
@@ -500,12 +509,12 @@ def _(Model2Highs, cond1):
 
 @app.cell
 def _(model3):
-    print (f"Opt.value = {model3.info.objective_function_value}")
+    print(f"Opt.value = {model3.info.objective_function_value}")
 
     for _id_job, s in enumerate(model3.s):
         _val = model3.solution.col_value[s.index]
         print(f"s[{_id_job}] = {_val}")
-    return (s,)
+    return
 
 
 @app.cell
@@ -516,15 +525,22 @@ def _(Condition, cp_model):
 
             horizon = sum(job.time for job in cond.jobs)
 
-            self.starts = [self.model.new_int_var(lb=0, ub=horizon-job.time, name="") for job in cond.jobs]
+            self.starts = [
+                self.model.new_int_var(lb=0, ub=horizon - job.time, name="")
+                for job in cond.jobs
+            ]
             self.jobs = [
-                self.model.new_fixed_size_interval_var(self.starts[id_job], job.time, name="")
+                self.model.new_fixed_size_interval_var(
+                    self.starts[id_job], job.time, name=""
+                )
                 for id_job, job in enumerate(cond.jobs)
             ]
 
             # ジョブ間依存関係
             for idx, jdx in cond.prec:
-                self.model.add(self.jobs[idx].end_expr() <= self.jobs[jdx].start_expr())
+                self.model.add(
+                    self.jobs[idx].end_expr() <= self.jobs[jdx].start_expr()
+                )
 
             # 資源制約
             for id_res, res in enumerate(cond.ress):
@@ -541,7 +557,9 @@ def _(Condition, cp_model):
 
             # 目的関数: makespan
             self.objective = self.model.new_int_var(lb=0, ub=horizon, name="")
-            self.model.add_max_equality(self.objective, [interval.end_expr() for interval in self.jobs])
+            self.model.add_max_equality(
+                self.objective, [interval.end_expr() for interval in self.jobs]
+            )
             self.model.minimize(self.objective)
 
         def solve(self, timeout: int = 180):
@@ -561,12 +579,12 @@ def _(Model2CpSat, cond1):
 
 @app.cell
 def _(model4):
-    print (f"Opt.value = {model4.solver.value(model4.objective)}")
+    print(f"Opt.value = {model4.solver.value(model4.objective)}")
 
     for _id_job, interval in enumerate(model4.jobs):
         _val = model4.solver.value(interval.start_expr())
         print(f"s[{_id_job}] = {_val}")
-    return (interval,)
+    return
 
 
 @app.cell
@@ -580,14 +598,14 @@ def _(Condition, Path, data_dir):
 def _(Model2Highs, cond2):
     model5 = Model2Highs(cond2)
     model5.solve()
-    return (model5,)
+    return
 
 
 @app.cell
 def _(Model2CpSat, cond2):
     model6 = Model2CpSat(cond2)
     model6.solve()
-    return (model6,)
+    return
 
 
 @app.cell

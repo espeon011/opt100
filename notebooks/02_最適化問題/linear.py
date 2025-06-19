@@ -2,13 +2,13 @@
 # requires-python = ">=3.12"
 # dependencies = [
 #     "marimo",
-#     "ortools==9.12.4544",
+#     "ortools==9.13.4784",
 # ]
 # ///
 
 import marimo
 
-__generated_with = "0.11.25"
+__generated_with = "0.14.0"
 app = marimo.App(width="medium")
 
 
@@ -28,13 +28,13 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-        \begin{align}
-        &\text{maximize} & 15x_1 + 18 x_2 & \\
-        &\text{s.t.} & 2x_1 + x_2 &\leq 60 \\
-        & & x_1 + 2 x_2 &\leq 60 \\
-        & & x_1, x_2 &\geq 0
-        \end{align}
-        """
+    \begin{align}
+    &\text{maximize} & 15x_1 + 18 x_2 & \\
+    &\text{s.t.} & 2x_1 + x_2 &\leq 60 \\
+    & & x_1 + 2 x_2 &\leq 60 \\
+    & & x_1, x_2 &\geq 0
+    \end{align}
+    """
     )
     return
 
@@ -65,7 +65,7 @@ def _(mathopt, model):
     result = mathopt.solve(model, mathopt.SolverType.GLOP, params=params)
     if result.termination.reason != mathopt.TerminationReason.OPTIMAL:
         raise RuntimeError(f"model failed to solve: {result.termination}")
-    return params, result
+    return (result,)
 
 
 @app.cell

@@ -23,9 +23,12 @@
         BuildInputs = [];
 
         packages = [
-          pkgs.python313
           pkgs.uv
-          pkgs.ruff
+          pkgs.python313
+          pkgs.python313Packages.ruff
+          pkgs.python313Packages.python-lsp-server
+          pkgs.python313Packages.python-lsp-server.optional-dependencies.all
+          pkgs.unzip
         ];
 
         # numpy 依存ライブラリへの PATH

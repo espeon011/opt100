@@ -2,13 +2,13 @@
 # requires-python = ">=3.13"
 # dependencies = [
 #     "marimo",
-#     "pyscipopt==5.4.1",
+#     "pyscipopt==5.5.0",
 # ]
 # ///
 
 import marimo
 
-__generated_with = "0.11.25"
+__generated_with = "0.14.0"
 app = marimo.App(width="medium")
 
 
@@ -35,11 +35,11 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-        $n$ 個のジョブを $m$ 台のマシンで順番に処理する.
-        各ジョブはマシン 1, マシン 2, ... で順に処理されマシン $m$ で処理されると完了になる.
+    $n$ 個のジョブを $m$ 台のマシンで順番に処理する.
+    各ジョブはマシン 1, マシン 2, ... で順に処理されマシン $m$ で処理されると完了になる.
 
-        ![](https://www.researchgate.net/profile/Mariusz-Makuchowski/publication/280775329/figure/fig1/AS:284468087672848@1444833885900/Schedules-of-the-different-variants-of-the-flow-shop-problem.png)
-        """
+    ![](https://www.researchgate.net/profile/Mariusz-Makuchowski/publication/280775329/figure/fig1/AS:284468087672848@1444833885900/Schedules-of-the-different-variants-of-the-flow-shop-problem.png)
+    """
     )
     return
 
@@ -54,18 +54,18 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-        ## 定数
+    ## 定数
 
-        - ジョブ: $J = \{ 1, \dots, n \}$
-        - マシン: $M = \{ 1, \dots, m \}$
-        - 処理時間: $p_{ij} \ (\forall i \in M, \forall j \in J)$
+    - ジョブ: $J = \{ 1, \dots, n \}$
+    - マシン: $M = \{ 1, \dots, m \}$
+    - 処理時間: $p_{ij} \ (\forall i \in M, \forall j \in J)$
 
-        ## 決定変数
+    ## 決定変数
 
-        - $x_{j \kappa} \in \{ 0, 1 \}$: ジョブ $j$ を並べた時の順番が $\kappa$ 番目であるとき $1$.
-        - $s_{i \kappa}$: マシン $i$ の $\kappa$ 番目に並べられているジョブの開始時刻
-        - $f_{i \kappa}$: マシン $i$ の $\kappa$ 番目に並べられているジョブの終了時刻
-        """
+    - $x_{j \kappa} \in \{ 0, 1 \}$: ジョブ $j$ を並べた時の順番が $\kappa$ 番目であるとき $1$.
+    - $s_{i \kappa}$: マシン $i$ の $\kappa$ 番目に並べられているジョブの開始時刻
+    - $f_{i \kappa}$: マシン $i$ の $\kappa$ 番目に並べられているジョブの終了時刻
+    """
     )
     return
 
@@ -74,18 +74,18 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-        \begin{align*}
-        &\text{minimize} &f_{mn} \\
-        &\text{s.t.} &\sum_{\kappa} x_{j \kappa} &= 1 \ &(\forall j \in J) \\
-        & &\sum_{j \in J} x_{j \kappa} &= 1 \ &(\forall \kappa = 1, \dots, n) \\
-        & &f_{i \kappa} &\leq s_{i,\kappa+1} \ &(\forall i \in M, \forall \kappa = 1, \dots, n-1) \\
-        & &s_{i \kappa} + \sum_{j \in J} p_{ij} x_{j \kappa} &\leq f_{i \kappa} \ &(\forall i \in M, \forall \kappa = 1, \dots, n) \\
-        & &f_{i \kappa} &\leq s_{i+1, \kappa} \ &(\forall i \in M \setminus \{m\}, \forall \kappa = 1, \dots, n) \\
-        & &x_{j \kappa} &\in \{ 0, 1 \} \ &(\forall j \in J, \kappa = 1, \dots, n) \\
-        & &s_{i \kappa} &\geq 0 \ &(\forall i \in M, \kappa = 1, \dots, n) \\
-        & &f_{i \kappa} &\geq 0 \ &(\forall i \in M, \kappa = 1, \dots, n) \\
-        \end{align*}
-        """
+    \begin{align*}
+    &\text{minimize} &f_{mn} \\
+    &\text{s.t.} &\sum_{\kappa} x_{j \kappa} &= 1 \ &(\forall j \in J) \\
+    & &\sum_{j \in J} x_{j \kappa} &= 1 \ &(\forall \kappa = 1, \dots, n) \\
+    & &f_{i \kappa} &\leq s_{i,\kappa+1} \ &(\forall i \in M, \forall \kappa = 1, \dots, n-1) \\
+    & &s_{i \kappa} + \sum_{j \in J} p_{ij} x_{j \kappa} &\leq f_{i \kappa} \ &(\forall i \in M, \forall \kappa = 1, \dots, n) \\
+    & &f_{i \kappa} &\leq s_{i+1, \kappa} \ &(\forall i \in M \setminus \{m\}, \forall \kappa = 1, \dots, n) \\
+    & &x_{j \kappa} &\in \{ 0, 1 \} \ &(\forall j \in J, \kappa = 1, \dots, n) \\
+    & &s_{i \kappa} &\geq 0 \ &(\forall i \in M, \kappa = 1, \dots, n) \\
+    & &f_{i \kappa} &\geq 0 \ &(\forall i \in M, \kappa = 1, \dots, n) \\
+    \end{align*}
+    """
     )
     return
 
@@ -111,7 +111,7 @@ def _(random):
 @app.cell
 def _(scip):
     def permutation_flow_shop(n, m, p):
-        """ permutation_flow_shop problem
+        """permutation_flow_shop problem
         Parameters:
             - n: number of jobs
             - m: number of machines
@@ -131,21 +131,28 @@ def _(scip):
 
         for j in range(1, n + 1):
             model.addCons(
-                scip.quicksum(x[j, k] for k in range(1, n + 1)) == 1, "Assign1(%s)" % (j)
+                scip.quicksum(x[j, k] for k in range(1, n + 1)) == 1,
+                "Assign1(%s)" % (j),
             )
             model.addCons(
-                scip.quicksum(x[k, j] for k in range(1, n + 1)) == 1, "Assign2(%s)" % (j)
+                scip.quicksum(x[k, j] for k in range(1, n + 1)) == 1,
+                "Assign2(%s)" % (j),
             )
 
         for i in range(1, m + 1):
             for k in range(1, n + 1):
                 if k != n:
-                    model.addCons(f[i, k] <= s[i, k + 1], "FinishStart(%s,%s)" % (i, k))
+                    model.addCons(
+                        f[i, k] <= s[i, k + 1], "FinishStart(%s,%s)" % (i, k)
+                    )
                 if i != m:
-                    model.addCons(f[i, k] <= s[i + 1, k], "Machine(%s,%s)" % (i, k))
+                    model.addCons(
+                        f[i, k] <= s[i + 1, k], "Machine(%s,%s)" % (i, k)
+                    )
 
                 model.addCons(
-                    s[i, k] + scip.quicksum(p[i, j] * x[j, k] for j in range(1, n + 1))
+                    s[i, k]
+                    + scip.quicksum(p[i, j] * x[j, k] for j in range(1, n + 1))
                     <= f[i, k],
                     "StartFinish(%s,%s)" % (i, k),
                 )
@@ -165,7 +172,7 @@ def _(make_data_permutation_flow_shop, permutation_flow_shop):
     model, x, s, f = permutation_flow_shop(n, m, p)
     model.optimize()
     print("Opt.value=", model.getObjVal())
-    return f, m, model, n, p, s, x
+    return
 
 
 @app.cell

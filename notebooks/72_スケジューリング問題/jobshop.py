@@ -4,20 +4,20 @@
 #     "altair==5.5.0",
 #     "amplify-sched==0.2.2",
 #     "didppy==0.9.0",
-#     "highspy==1.10.0",
+#     "highspy==1.11.0",
 #     "marimo",
-#     "ortools==9.12.4544",
-#     "pandas==2.2.3",
-#     "plotly==6.0.1",
-#     "pyarrow==19.0.1",
-#     "pydantic==2.11.3",
+#     "ortools==9.13.4784",
+#     "pandas==2.3.0",
+#     "plotly==6.1.2",
+#     "pyarrow==20.0.0",
+#     "pydantic==2.11.7",
 #     "python-dotenv==1.1.0",
 # ]
 # ///
 
 import marimo
 
-__generated_with = "0.13.0"
+__generated_with = "0.14.0"
 app = marimo.App(width="medium")
 
 
@@ -36,7 +36,7 @@ def _():
     import datetime
     import random
     import dotenv
-    import pandas, pyarrow
+    import pandas
     import pydantic
     import plotly.express
     import altair
@@ -73,21 +73,21 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-        $J || C_{\max}$ と書く. 
+    $J || C_{\max}$ と書く. 
 
-        - ジョブ $J_1, \dots, J_n$
-        - ジョブ $J_j$ に属するオペレーション $O_{1j}, \dots, O_{m_jj}$. この順で処理される. 
-        - 機械 $M_1, \dots, M_m$
-        - オペレーション $O_{ij}$ は機械 $\mu_{ij}$ で作業時間 $p_{ij}$ かけて処理する. 
-        - オペレーションは中断できない
-        - 最後のオペレーションの終了時刻を最小化
-        """
+    - ジョブ $J_1, \dots, J_n$
+    - ジョブ $J_j$ に属するオペレーション $O_{1j}, \dots, O_{m_jj}$. この順で処理される. 
+    - 機械 $M_1, \dots, M_m$
+    - オペレーション $O_{ij}$ は機械 $\mu_{ij}$ で作業時間 $p_{ij}$ かけて処理する. 
+    - オペレーションは中断できない
+    - 最後のオペレーションの終了時刻を最小化
+    """
     )
     return
 
 
 @app.cell
-def _(Path, __file__, os):
+def _(Path, os):
     parent = str(Path(os.path.abspath(__file__)).parent)
     data_dir = os.path.join(parent, "data")
     return data_dir, parent
@@ -301,18 +301,18 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-        各ジョブに含まれるオペレーション数は機械の数 $m$ に一致すると仮定する.
+    各ジョブに含まれるオペレーション数は機械の数 $m$ に一致すると仮定する.
 
-        \begin{align*}
-        &\min &z \\
-        &\text{s.t. } & s_{ij} + p_{ij} - M (1 - x_{ijkl}) &\leq s_{kl} \quad &(\forall j \ne k) \\
-        & & x_{ijkl} + x_{klij} &= 1 \quad &((i,j) \ne (k,l) \land \text{machine} (i,j) = \text{machine} (k,l)) \\
-        & & s_{ij} + p_{ij} &\le s_{i,j+1} \quad &(\forall i, j = 1, \dots, m-1) \\
-        & & s_{im} &\le z \quad &(\forall i) \\
-        & & s_{i1} &\ge 0 \quad &(\forall i) \\
-        & & x_{ijkl} &\in \{ 0, 1 \} \quad &(\forall (i,j) \ne (k,l))
-        \end{align*}
-        """
+    \begin{align*}
+    &\min &z \\
+    &\text{s.t. } & s_{ij} + p_{ij} - M (1 - x_{ijkl}) &\leq s_{kl} \quad &(\forall j \ne k) \\
+    & & x_{ijkl} + x_{klij} &= 1 \quad &((i,j) \ne (k,l) \land \text{machine} (i,j) = \text{machine} (k,l)) \\
+    & & s_{ij} + p_{ij} &\le s_{i,j+1} \quad &(\forall i, j = 1, \dots, m-1) \\
+    & & s_{im} &\le z \quad &(\forall i) \\
+    & & s_{i1} &\ge 0 \quad &(\forall i) \\
+    & & x_{ijkl} &\in \{ 0, 1 \} \quad &(\forall (i,j) \ne (k,l))
+    \end{align*}
+    """
     )
     return
 
@@ -611,13 +611,13 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-        ta50 は最適解は知られていない. 
+    ta50 は最適解は知られていない. 
 
-        bounds
+    bounds
 
-        - upper: 1923
-        - lower: 1833
-        """
+    - upper: 1923
+    - lower: 1833
+    """
     )
     return
 
@@ -675,25 +675,25 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-        ### 状態
+    ### 状態
 
-        - $\text{Q}$: set 変数. 配置されていないタスクの集合を表す. 
-        - $\text{tm}_m \space (\forall m: \text{machine})$: 機械ごとに makespan を保持する. 
-        - $\text{tj}_j \space (\forall j: \text{job})$: ジョブごとに makespan を保持する. 
+    - $\text{Q}$: set 変数. 配置されていないタスクの集合を表す. 
+    - $\text{tm}_m \space (\forall m: \text{machine})$: 機械ごとに makespan を保持する. 
+    - $\text{tj}_j \space (\forall j: \text{job})$: ジョブごとに makespan を保持する. 
 
-        ### 目的関数
+    ### 目的関数
 
-        - $\text{makespan} := \max \{ \text{tm}_m, \text{tj}_j \mid m: \text{machine}, \space j: \text{job} \}$
+    - $\text{makespan} := \max \{ \text{tm}_m, \text{tj}_j \mid m: \text{machine}, \space j: \text{job} \}$
 
-        ### 更新規則
+    ### 更新規則
 
-        - タスク $\text{task} \in Q$ は全ての先行タスクが $Q$ に属していない時配置可能. 
-        - $\text{task}$ が配置された場合, それを $Q$ から取り除く. 
-        - $\text{task}$ が配置された場合, タスクを処理する機械 $m$ とタスクの属するジョブ $j$ に対して以下のように更新する.
-            - $\text{tm}_m \leftarrow \max(\text{tm}_m + t_\text{task}, \space \text{tj}_j + t_\text{task})$
-            - $\text{tj}_j \leftarrow \max(\text{tm}_m + t_\text{task}, \space \text{tj}_j + t_\text{task})$
-        - 上記更新の後, 目的関数を再計算する.
-        """
+    - タスク $\text{task} \in Q$ は全ての先行タスクが $Q$ に属していない時配置可能. 
+    - $\text{task}$ が配置された場合, それを $Q$ から取り除く. 
+    - $\text{task}$ が配置された場合, タスクを処理する機械 $m$ とタスクの属するジョブ $j$ に対して以下のように更新する.
+        - $\text{tm}_m \leftarrow \max(\text{tm}_m + t_\text{task}, \space \text{tj}_j + t_\text{task})$
+        - $\text{tj}_j \leftarrow \max(\text{tm}_m + t_\text{task}, \space \text{tj}_j + t_\text{task})$
+    - 上記更新の後, 目的関数を再計算する.
+    """
     )
     return
 
@@ -789,7 +789,18 @@ def _(Job, didppy):
 
                     id_jobtask += 1
 
-            self.model.add_dual_bound(0)
+            task_to_min_cost = []
+            for job in self.jobs:
+                cost = sum(task.time for task in job.tasks)
+                for task in job.tasks:
+                    task_to_min_cost.append(cost)
+                    cost -= task.time
+            task_to_min_cost_table = self.model.add_int_table(task_to_min_cost)
+            self.model.add_dual_bound(
+                remaining.is_empty().if_then_else(
+                    0, task_to_min_cost_table.min(remaining)
+                )
+            )
 
         def solve(self, timeout=10, threads: int = 8) -> None:
             self.solver = didppy.CABS(
@@ -852,13 +863,13 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-        JSP は タスクをノード, 依存関係や同時処理禁止規則をエッジで表現したグラフからエッジを選択する問題として表現することができる.
+    JSP は タスクをノード, 依存関係や同時処理禁止規則をエッジで表現したグラフからエッジを選択する問題として表現することができる.
 
-        ### 参考
+    ### 参考
 
-        - https://acrogenesis.com/or-tools/documentation/user_manual/manual/ls/jobshop_def_data.html
-        - https://zenn.dev/fusic/articles/0fed6d5dfbdeb5
-        """
+    - https://acrogenesis.com/or-tools/documentation/user_manual/manual/ls/jobshop_def_data.html
+    - https://zenn.dev/fusic/articles/0fed6d5dfbdeb5
+    """
     )
     return
 
@@ -867,44 +878,44 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-        ### 定数
+    ### 定数
 
-        - $J$: ジョブの集合
-        - $M$: マシンの集合
-        - $O$: オペレーションの集合
-        - $O_j$: ジョブ $j$ のオペレーションの集合
-        - $O_m$: マシン $m$ で処理するオペレーションの集合
-        - $t_o$: オペレーション $o$ の処理時間
+    - $J$: ジョブの集合
+    - $M$: マシンの集合
+    - $O$: オペレーションの集合
+    - $O_j$: ジョブ $j$ のオペレーションの集合
+    - $O_m$: マシン $m$ で処理するオペレーションの集合
+    - $t_o$: オペレーション $o$ の処理時間
 
-        ### グラフ
+    ### グラフ
 
-        - ノード $N := O \cup \{ \text{source}, \text{target} \}$
-        - エッジ $E := E^c \cup E^d$
-            - Conjunctive Edges $E^c$: オペレーション $o$ と $o'$ が同じジョブに属しており, $o$ の後に $o'$ を処理しなければならない場合, $(o, o') \in E^c$.
-              また, $o$ があるジョブの最初のオペレーションであるとき $(\text{source}, o) \in E^c$. 
-              $o$ があるジョブの最後のオペレーションであるとき $(o, \text{target}) \in E^c$. 
-            - Disjunctive Edges $E^d$: オペレーション $o$ と $o'$ が同じマシンで処理されるとき, $(o, o') \in E^d$ かつ $(o', o) \in E^d$. 
-              このエッジは双方向のうちどちらかを選択し, 選択されたエッジによりオペレーションの処理順序が定まる. 
+    - ノード $N := O \cup \{ \text{source}, \text{target} \}$
+    - エッジ $E := E^c \cup E^d$
+        - Conjunctive Edges $E^c$: オペレーション $o$ と $o'$ が同じジョブに属しており, $o$ の後に $o'$ を処理しなければならない場合, $(o, o') \in E^c$.
+          また, $o$ があるジョブの最初のオペレーションであるとき $(\text{source}, o) \in E^c$. 
+          $o$ があるジョブの最後のオペレーションであるとき $(o, \text{target}) \in E^c$. 
+        - Disjunctive Edges $E^d$: オペレーション $o$ と $o'$ が同じマシンで処理されるとき, $(o, o') \in E^d$ かつ $(o', o) \in E^d$. 
+          このエッジは双方向のうちどちらかを選択し, 選択されたエッジによりオペレーションの処理順序が定まる. 
 
-        このグラフのエッジで繋がれたノード(オペレーション)の間には処理順序の関係がある. 
-        Conjunctive edge は同一ジョブ内オペレーションの順序関係を表し, 
-        Disjunctive edge は同一マシンで処理するオペレーションの間の順序関係を表す. 
+    このグラフのエッジで繋がれたノード(オペレーション)の間には処理順序の関係がある. 
+    Conjunctive edge は同一ジョブ内オペレーションの順序関係を表し, 
+    Disjunctive edge は同一マシンで処理するオペレーションの間の順序関係を表す. 
 
-        ### 決定変数
+    ### 決定変数
 
-        - $x_e \in \{ 0, 1 \} \space (e \in E)$: エッジ $e$ を選択する場合のみ $1$.
-        - $s_n \in \mathbb{Z} \space (n \in N)$: オペレーションの開始時刻. $\text{source}$ ノードの開始時刻は 0, 処理時間も 0 とする. 
+    - $x_e \in \{ 0, 1 \} \space (e \in E)$: エッジ $e$ を選択する場合のみ $1$.
+    - $s_n \in \mathbb{Z} \space (n \in N)$: オペレーションの開始時刻. $\text{source}$ ノードの開始時刻は 0, 処理時間も 0 とする. 
 
-        ### 制約条件
+    ### 制約条件
 
-        - $e = (u, v)$ とする. このとき $x_e = 1 \Rightarrow s_u + t_u \leq s_v$
-            - $e \in E^c \Rightarrow x_e = 1$
-            - $(u, v) \in E^d \Rightarrow x_{(u,v)} + x_{(v,u)} = 1$
+    - $e = (u, v)$ とする. このとき $x_e = 1 \Rightarrow s_u + t_u \leq s_v$
+        - $e \in E^c \Rightarrow x_e = 1$
+        - $(u, v) \in E^d \Rightarrow x_{(u,v)} + x_{(v,u)} = 1$
 
-        ### 目的関数
+    ### 目的関数
 
-        - $s_\text{target}$ が makespan を表す. これを最小化する.
-        """
+    - $s_\text{target}$ が makespan を表す. これを最小化する.
+    """
     )
     return
 
@@ -919,9 +930,9 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-        上記のグラフにマシン自体をノードとして足し, 
-        disjunctive edge のみを辿ってマシンごとに順回路を作成することでマシン内での実行順を記述することができる.
-        """
+    上記のグラフにマシン自体をノードとして足し, 
+    disjunctive edge のみを辿ってマシンごとに順回路を作成することでマシン内での実行順を記述することができる.
+    """
     )
     return
 
@@ -1035,12 +1046,12 @@ def _(ModelCpSatArc, jobs3, mo):
 def _(mo):
     mo.md(
         r"""
-        なんか全然ダメだった...
+    なんか全然ダメだった...
 
-        区間変数より circuit constraint の方がいい場合もあるらしい[^1]が, 今回はダメそう.
+    区間変数より circuit constraint の方がいい場合もあるらしい[^1]が, 今回はダメそう.
 
-        [^1]: https://d-krupke.github.io/cpsat-primer/04B_advanced_modelling.html
-        """
+    [^1]: https://d-krupke.github.io/cpsat-primer/04B_advanced_modelling.html
+    """
     )
     return
 
