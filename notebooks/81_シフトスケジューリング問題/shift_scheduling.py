@@ -4,7 +4,7 @@
 #     "marimo",
 #     "nbformat==5.10.4",
 #     "networkx==3.5",
-#     "ortools==9.13.4784",
+#     "ortools==9.14.6206",
 #     "pydantic==2.11.7",
 #     "ruff==0.11.9",
 # ]
