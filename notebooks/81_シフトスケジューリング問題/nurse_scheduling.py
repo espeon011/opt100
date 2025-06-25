@@ -109,9 +109,7 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""参考: https://github.com/google/or-tools/blob/stable/examples/notebook/sat/nurses_sat.ipynb"""
-    )
+    mo.md(r"""参考: https://github.com/google/or-tools/blob/stable/examples/notebook/sat/nurses_sat.ipynb""")
     return
 
 
