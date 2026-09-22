@@ -636,22 +636,46 @@ def _(didppy):
 
                     id_jobtask += 1
 
-            task_to_min_cost = []
-            for job in self.jobs:
-                cost = sum(task.time for task in job.tasks)
-                for task in job.tasks:
-                    task_to_min_cost.append(cost)
-                    cost -= task.time
-            task_to_min_cost_table = self.model.add_int_table(task_to_min_cost)
-            self.model.add_dual_bound(
-                remaining.is_empty().if_then_else(
-                    0, task_to_min_cost_table.min(remaining)
+            # 双対限界: 機械の空き時刻 + その機械に残っているタスクの処理時間の合計
+            for id_machine in range(n_machines):
+                machine_time = self.model.add_int_table(
+                    [
+                        task.time if task.machine == id_machine else 0
+                        for job in self.jobs
+                        for task in job.tasks
+                    ]
                 )
-            )
+                self.model.add_dual_bound(
+                    remaining.is_empty().if_then_else(
+                        0,
+                        cur_time_per_machine[id_machine] + machine_time[remaining],
+                    )
+                )
+
+            # 双対限界: ジョブの空き時刻 + そのジョブに残っているタスクの処理時間の合計
+            for id_job in range(len(self.jobs)):
+                job_time = self.model.add_int_table(
+                    [
+                        task.time if jdx == id_job else 0
+                        for jdx, job in enumerate(self.jobs)
+                        for task in job.tasks
+                    ]
+                )
+                self.model.add_dual_bound(
+                    remaining.is_empty().if_then_else(
+                        0, cur_time_per_job[id_job] + job_time[remaining]
+                    )
+                )
 
         def solve(self, timeout=10, threads: int = 8) -> None:
             self.solver = didppy.CABS(
-                self.model, threads=threads, quiet=False, time_limit=timeout
+                self.model,
+                threads=threads,
+                quiet=False,
+                time_limit=timeout,
+                # makespan は max で積み上げるので f = max(g, 双対限界) にする
+                # 既定の Plus だと f を過大評価して最適解を枝刈りする
+                f_operator=didppy.FOperator.Max,
             )
             # self.solver = didppy.LNBS(
             #     self.model, threads=threads, quiet=False, time_limit=timeout
