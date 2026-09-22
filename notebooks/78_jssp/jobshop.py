@@ -1,29 +1,34 @@
 # /// script
 # requires-python = ">=3.13"
 # dependencies = [
-#     "altair==5.5.0",
+#     "altair==6.3.0",
 #     "amplify-sched==0.2.2",
-#     "didppy==0.9.0",
-#     "highspy==1.11.0",
+#     "didppy==0.11.1",
 #     "marimo",
-#     "ortools==9.13.4784",
-#     "pandas==2.3.0",
-#     "plotly==6.1.2",
-#     "pyarrow==20.0.0",
-#     "pydantic==2.11.7",
-#     "python-dotenv==1.1.0",
+#     "ortools==9.15.6755",
+#     "pandas==3.0.6",
+#     "plotly==7.1.0",
+#     "pyarrow==25.0.1",
+#     "pydantic==2.13.5",
+#     "python-dotenv==1.2.3",
 # ]
 # ///
 
 import marimo
 
-__generated_with = "0.14.0"
+__generated_with = "0.24.0"
 app = marimo.App(width="medium")
+
+with app.setup:
+    from typing import Self
+
+    import pydantic
 
 
 @app.cell
 def _():
     import marimo as mo
+
     return (mo,)
 
 
@@ -32,57 +37,52 @@ def _():
     import os
     from pathlib import Path
     from pprint import pprint
-    from typing import Self
     import datetime
     import random
     import dotenv
     import pandas
-    import pydantic
     import plotly.express
     import altair
     from ortools.sat.python import cp_model
-    import highspy
     import amplify_sched
     import didppy
+
     return (
         Path,
-        Self,
         altair,
         amplify_sched,
         cp_model,
         datetime,
         didppy,
         dotenv,
-        highspy,
         os,
         pandas,
         plotly,
         pprint,
-        pydantic,
         random,
     )
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""# ジョブショップスケジューリング問題""")
+    mo.md(r"""
+    # ジョブショップスケジューリング問題
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-    $J || C_{\max}$ と書く. 
+    mo.md(r"""
+    $J || C_{\max}$ と書く.
 
     - ジョブ $J_1, \dots, J_n$
-    - ジョブ $J_j$ に属するオペレーション $O_{1j}, \dots, O_{m_jj}$. この順で処理される. 
+    - ジョブ $J_j$ に属するオペレーション $O_{1j}, \dots, O_{m_jj}$. この順で処理される.
     - 機械 $M_1, \dots, M_m$
-    - オペレーション $O_{ij}$ は機械 $\mu_{ij}$ で作業時間 $p_{ij}$ かけて処理する. 
+    - オペレーション $O_{ij}$ は機械 $\mu_{ij}$ で作業時間 $p_{ij}$ かけて処理する.
     - オペレーションは中断できない
     - 最後のオペレーションの終了時刻を最小化
-    """
-    )
+    """)
     return
 
 
@@ -93,53 +93,50 @@ def _(Path, os):
     return data_dir, parent
 
 
-@app.cell
-def _(pydantic):
-    class Task(pydantic.BaseModel):
-        model_config = pydantic.ConfigDict(frozen=True)
+@app.class_definition
+class Task(pydantic.BaseModel):
+    model_config = pydantic.ConfigDict(frozen=True)
 
-        machine: int = pydantic.Field(..., ge=0, frozen=True)
-        time: int = pydantic.Field(..., ge=0, frozen=True)
-    return (Task,)
+    machine: int = pydantic.Field(..., ge=0, frozen=True)
+    time: int = pydantic.Field(..., ge=0, frozen=True)
 
 
-@app.cell
-def _(Self, Task, pydantic):
-    class Job(pydantic.BaseModel):
-        model_config = pydantic.ConfigDict(frozen=True)
+@app.class_definition
+class Job(pydantic.BaseModel):
+    model_config = pydantic.ConfigDict(frozen=True)
 
-        tasks: list[Task] = pydantic.Field(frozen=True)
+    tasks: list[Task] = pydantic.Field(frozen=True)
 
-        def from_file(fname: str) -> list[Self]:
-            with open(fname) as f:
-                n, m = None, None
-                machine, proc_time = {}, {}
+    @classmethod
+    def from_file(cls, fname: str) -> list[Self]:
+        with open(fname) as f:
+            n, m = None, None
+            machine, proc_time = {}, {}
 
-                i = 0
-                for line in f:
-                    if line[0] == "#":
-                        continue
+            i = 0
+            for line in f:
+                if line[0] == "#":
+                    continue
 
-                    if n is None or m is None:
-                        n, m = map(int, line.split())
-                        print(f"{n=}, {m=}")
-                        continue
+                if n is None or m is None:
+                    n, m = map(int, line.split())
+                    print(f"{n=}, {m=}")
+                    continue
 
-                    L = list(map(int, line.split()))
-                    for j in range(m):
-                        machine[i, j] = L[2 * j]
-                        proc_time[i, j] = L[2 * j + 1]
-                    i += 1
-
-            jobs = []
-            for i in range(n):
-                tasks = []
+                L = list(map(int, line.split()))
                 for j in range(m):
-                    tasks.append(Task(machine=machine[i, j], time=proc_time[i, j]))
-                jobs.append(Job(tasks=tasks))
+                    machine[i, j] = L[2 * j]
+                    proc_time[i, j] = L[2 * j + 1]
+                i += 1
 
-            return jobs
-    return (Job,)
+        jobs = []
+        for i in range(n):
+            tasks = []
+            for j in range(m):
+                tasks.append(Task(machine=machine[i, j], time=proc_time[i, j]))
+            jobs.append(cls(tasks=tasks))
+
+        return jobs
 
 
 @app.cell
@@ -153,6 +150,7 @@ def _(pandas, plotly):
             color="job",
             opacity=0.5,
         ).update_yaxes(categoryorder="category descending")
+
     return (plot_plotly,)
 
 
@@ -170,11 +168,12 @@ def _(altair, pandas):
             )
             .properties(width="container", height=400)
         )
+
     return (plot_altair,)
 
 
 @app.cell
-def _(Job, data_dir, os, pprint):
+def _(data_dir, os, pprint):
     fname1 = os.path.join(data_dir, "ft06.txt")
     jobs1 = Job.from_file(fname1)
     pprint(jobs1)
@@ -183,12 +182,14 @@ def _(Job, data_dir, os, pprint):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## OR-Tools による求解""")
+    mo.md(r"""
+    ## OR-Tools による求解
+    """)
     return
 
 
 @app.cell
-def _(Job, cp_model, datetime, pandas):
+def _(cp_model, datetime, pandas):
     class ModelCpSat:
         def __init__(self, jobs: list[Job]):
             self.jobs = jobs
@@ -263,6 +264,7 @@ def _(Job, cp_model, datetime, pandas):
             df["start"] = pandas.to_datetime(df["start"])
             df["end"] = pandas.to_datetime(df["end"])
             return df
+
     return (ModelCpSat,)
 
 
@@ -293,150 +295,34 @@ def _(model1_cpsat, plot_altair):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## 数理最適化ソルバーによる求解""")
+    mo.md(r"""
+    ## 数理最適化ソルバーによる求解
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-    各ジョブに含まれるオペレーション数は機械の数 $m$ に一致すると仮定する.
+    mo.md(r"""
+    HiGHS で離接定式化を解くのは `jobshop_highs.py` に分離.
 
-    \begin{align*}
-    &\min &z \\
-    &\text{s.t. } & s_{ij} + p_{ij} - M (1 - x_{ijkl}) &\leq s_{kl} \quad &(\forall j \ne k) \\
-    & & x_{ijkl} + x_{klij} &= 1 \quad &((i,j) \ne (k,l) \land \text{machine} (i,j) = \text{machine} (k,l)) \\
-    & & s_{ij} + p_{ij} &\le s_{i,j+1} \quad &(\forall i, j = 1, \dots, m-1) \\
-    & & s_{im} &\le z \quad &(\forall i) \\
-    & & s_{i1} &\ge 0 \quad &(\forall i) \\
-    & & x_{ijkl} &\in \{ 0, 1 \} \quad &(\forall (i,j) \ne (k,l))
-    \end{align*}
-    """
-    )
-    return
-
-
-@app.cell
-def _(Job, datetime, highspy, pandas):
-    class _MyInterval:
-        def __init__(self, model: highspy.Highs, lb: int, ub: int, proctime: int):
-            self.lb = lb
-            self.ub = ub
-            self.start = model.addVariable(lb=lb, ub=ub - proctime)
-            self.time = proctime
-            self.end = self.start + self.time
-
-
-    def _my_add_no_overlap(model: highspy.Highs, tasks: list[_MyInterval]) -> None:
-        for idx1, task1 in enumerate(tasks):
-            for idx2, task2 in enumerate(tasks):
-                if idx1 >= idx2:
-                    continue
-
-                big_m = max(task1.ub - task2.lb, task2.ub - task1.lb)
-                tmp1 = model.addBinary()  # [ task1 ] [ task2 ] の順
-                tmp2 = model.addBinary()  # [ task2 ] [ task1 ] の順
-                model.addConstrs(
-                    [
-                        task1.end - big_m * (1 - tmp1) <= task2.start,
-                        task2.end - big_m * (1 - tmp2) <= task1.start,
-                        tmp1 + tmp2 == 1,
-                    ]
-                )
-
-
-    class ModelHighs:
-        def __init__(self, jobs: list[Job]):
-            self.jobs = jobs
-            num_machines = len(
-                set(task.machine for job in self.jobs for task in job.tasks)
-            )
-            self.machines = list(range(num_machines))
-
-            self.model = highspy.Highs()
-
-            self.intervals = [[None for task in job.tasks] for job in jobs]
-            machine_to_interval = {m: [] for m in self.machines}
-
-            horizon = sum(task.time for job in self.jobs for task in job.tasks)
-            for id_job, job in enumerate(self.jobs):
-                for id_task, task in enumerate(job.tasks):
-                    interval = _MyInterval(self.model, 0, horizon, task.time)
-                    self.intervals[id_job][id_task] = interval
-                    machine_to_interval[task.machine].append(interval)
-
-            for machine in machine_to_interval:
-                if len(machine_to_interval[machine]) > 0:
-                    _my_add_no_overlap(self.model, machine_to_interval[machine])
-
-            for id_job, job in enumerate(self.jobs):
-                for id_task, task in enumerate(job.tasks):
-                    if id_task > 0:
-                        curr = self.intervals[id_job][id_task]
-                        prev = self.intervals[id_job][id_task - 1]
-                        self.model.addConstr(curr.start >= prev.end)
-
-            makespan = self.model.addVariable(lb=0, ub=horizon)
-            self.model.addConstrs(
-                [
-                    self.intervals[id_job][-1].end <= makespan
-                    for id_job, job in enumerate(self.jobs)
-                ],
-            )
-            self.model.minimize(makespan)
-
-        def solve(self) -> None:
-            self.model.run()
-            self.solution = self.model.getSolution()
-
-        def to_df(self) -> pandas.DataFrame:
-            today = datetime.date.today()
-            l = []
-            for id_job, job in enumerate(self.jobs):
-                for id_task, task in enumerate(job.tasks):
-                    start = self.solution.col_value[
-                        self.intervals[id_job][id_task].start.index
-                    ]
-                    start = round(start)
-                    end = start + self.jobs[id_job].tasks[id_task].time
-                    l.append(
-                        dict(
-                            job=f"job{id_job}",
-                            task=f"task{id_task}",
-                            resource=f"machine{self.jobs[id_job].tasks[id_task].machine}",
-                            start=today + datetime.timedelta(start),
-                            end=today + datetime.timedelta(end),
-                        )
-                    )
-            df = pandas.DataFrame(l)
-            df["start"] = pandas.to_datetime(df["start"])
-            df["end"] = pandas.to_datetime(df["end"])
-            return df
-    return (ModelHighs,)
-
-
-@app.cell
-def _(ModelHighs, jobs1):
-    model1_highs = ModelHighs(jobs1)
-    model1_highs.solve()
-    return (model1_highs,)
-
-
-@app.cell
-def _(model1_highs, plot_altair):
-    plot_altair(model1_highs.to_df())
+    OR-Tools と highspy はどっちも HiGHS を `libhighs.so.1` という同じ名前で同梱していて,
+    同じプロセスで両方 import すると後から読んだ方がバージョン違いの HiGHS を掴んで `ImportError` になる.
+    (ortools 9.15.6755 の中身は HiGHS 1.12.0, highspy 1.15.1 は HiGHS 1.15.1)
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## FIXSTARS Amplify Scheduling Engine による求解""")
+    mo.md(r"""
+    ## FIXSTARS Amplify Scheduling Engine による求解
+    """)
     return
 
 
 @app.cell
-def _(Job, amplify_sched, datetime, dotenv, os, pandas):
+def _(amplify_sched, datetime, dotenv, os, pandas):
     dotenv.load_dotenv(dotenv.find_dotenv(usecwd=True))
     token = os.environ["FIXSTARS_SE"]
 
@@ -503,6 +389,7 @@ def _(Job, amplify_sched, datetime, dotenv, os, pandas):
             df["start"] = pandas.to_datetime(df["start"])
             df["end"] = pandas.to_datetime(df["end"])
             return df
+
     return (ModelAmplifySe,)
 
 
@@ -529,12 +416,14 @@ def _(model1_amplify, plot_altair):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## より大きい問題""")
+    mo.md(r"""
+    ## より大きい問題
+    """)
     return
 
 
 @app.cell
-def _(Job, Task, random):
+def _(random):
     def gen_data(n_jobs: int, n_machines: int) -> list[Job]:
         random.seed(0)
         jobs = []
@@ -550,6 +439,7 @@ def _(Job, Task, random):
             jobs.append(Job(tasks=tasks))
 
         return jobs
+
     return (gen_data,)
 
 
@@ -574,19 +464,6 @@ def _(model2_cpsat, plot_plotly):
 
 
 @app.cell
-def _():
-    # model2_highs = ModelHighs(jobs2)
-    # model2_highs.solve()
-    return
-
-
-@app.cell
-def _():
-    # plot_altair(model2_highs.to_df())
-    return
-
-
-@app.cell
 def _(ModelAmplifySe, jobs2):
     model2_amplify = ModelAmplifySe(jobs2)
     model2_amplify.solve(timeout=5)
@@ -603,22 +480,22 @@ def _(model2_amplify, plot_plotly):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## 他のインスタンス""")
+    mo.md(r"""
+    ## 他のインスタンス
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-    ta50 は最適解は知られていない. 
+    mo.md(r"""
+    ta50 は最適解は知られていない.
 
     bounds
 
     - upper: 1923
     - lower: 1833
-    """
-    )
+    """)
     return
 
 
@@ -629,7 +506,7 @@ def _(os, parent):
 
 
 @app.cell
-def _(Job, instance_dir, os):
+def _(instance_dir, os):
     fname3 = os.path.join(instance_dir, "ta50")
     jobs3 = Job.from_file(fname3)
     return (jobs3,)
@@ -667,19 +544,20 @@ def _(model3_cpsat, plot_plotly):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## didp での求解""")
+    mo.md(r"""
+    ## didp での求解
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ### 状態
 
-    - $\text{Q}$: set 変数. 配置されていないタスクの集合を表す. 
-    - $\text{tm}_m \space (\forall m: \text{machine})$: 機械ごとに makespan を保持する. 
-    - $\text{tj}_j \space (\forall j: \text{job})$: ジョブごとに makespan を保持する. 
+    - $\text{Q}$: set 変数. 配置されていないタスクの集合を表す.
+    - $\text{tm}_m \space (\forall m: \text{machine})$: 機械ごとに makespan を保持する.
+    - $\text{tj}_j \space (\forall j: \text{job})$: ジョブごとに makespan を保持する.
 
     ### 目的関数
 
@@ -687,19 +565,18 @@ def _(mo):
 
     ### 更新規則
 
-    - タスク $\text{task} \in Q$ は全ての先行タスクが $Q$ に属していない時配置可能. 
-    - $\text{task}$ が配置された場合, それを $Q$ から取り除く. 
+    - タスク $\text{task} \in Q$ は全ての先行タスクが $Q$ に属していない時配置可能.
+    - $\text{task}$ が配置された場合, それを $Q$ から取り除く.
     - $\text{task}$ が配置された場合, タスクを処理する機械 $m$ とタスクの属するジョブ $j$ に対して以下のように更新する.
         - $\text{tm}_m \leftarrow \max(\text{tm}_m + t_\text{task}, \space \text{tj}_j + t_\text{task})$
         - $\text{tj}_j \leftarrow \max(\text{tm}_m + t_\text{task}, \space \text{tj}_j + t_\text{task})$
     - 上記更新の後, 目的関数を再計算する.
-    """
-    )
+    """)
     return
 
 
 @app.cell
-def _(Job, didppy):
+def _(didppy):
     class ModelDidp:
         def __init__(self, jobs: list[Job]):
             self.jobs = jobs
@@ -810,6 +687,7 @@ def _(Job, didppy):
             #     self.model, threads=threads, quiet=False, time_limit=timeout
             # )
             self.solution: didppy.Solution = self.solver.search()
+
     return (ModelDidp,)
 
 
@@ -855,29 +733,28 @@ def _(ModelDidp, jobs3, mo):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## 離接定式化のグラフによる表示""")
+    mo.md(r"""
+    ## 離接定式化のグラフによる表示
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     JSP は タスクをノード, 依存関係や同時処理禁止規則をエッジで表現したグラフからエッジを選択する問題として表現することができる.
 
     ### 参考
 
     - https://acrogenesis.com/or-tools/documentation/user_manual/manual/ls/jobshop_def_data.html
     - https://zenn.dev/fusic/articles/0fed6d5dfbdeb5
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ### 定数
 
     - $J$: ジョブの集合
@@ -892,19 +769,19 @@ def _(mo):
     - ノード $N := O \cup \{ \text{source}, \text{target} \}$
     - エッジ $E := E^c \cup E^d$
         - Conjunctive Edges $E^c$: オペレーション $o$ と $o'$ が同じジョブに属しており, $o$ の後に $o'$ を処理しなければならない場合, $(o, o') \in E^c$.
-          また, $o$ があるジョブの最初のオペレーションであるとき $(\text{source}, o) \in E^c$. 
-          $o$ があるジョブの最後のオペレーションであるとき $(o, \text{target}) \in E^c$. 
-        - Disjunctive Edges $E^d$: オペレーション $o$ と $o'$ が同じマシンで処理されるとき, $(o, o') \in E^d$ かつ $(o', o) \in E^d$. 
-          このエッジは双方向のうちどちらかを選択し, 選択されたエッジによりオペレーションの処理順序が定まる. 
+          また, $o$ があるジョブの最初のオペレーションであるとき $(\text{source}, o) \in E^c$.
+          $o$ があるジョブの最後のオペレーションであるとき $(o, \text{target}) \in E^c$.
+        - Disjunctive Edges $E^d$: オペレーション $o$ と $o'$ が同じマシンで処理されるとき, $(o, o') \in E^d$ かつ $(o', o) \in E^d$.
+          このエッジは双方向のうちどちらかを選択し, 選択されたエッジによりオペレーションの処理順序が定まる.
 
-    このグラフのエッジで繋がれたノード(オペレーション)の間には処理順序の関係がある. 
-    Conjunctive edge は同一ジョブ内オペレーションの順序関係を表し, 
-    Disjunctive edge は同一マシンで処理するオペレーションの間の順序関係を表す. 
+    このグラフのエッジで繋がれたノード(オペレーション)の間には処理順序の関係がある.
+    Conjunctive edge は同一ジョブ内オペレーションの順序関係を表し,
+    Disjunctive edge は同一マシンで処理するオペレーションの間の順序関係を表す.
 
     ### 決定変数
 
     - $x_e \in \{ 0, 1 \} \space (e \in E)$: エッジ $e$ を選択する場合のみ $1$.
-    - $s_n \in \mathbb{Z} \space (n \in N)$: オペレーションの開始時刻. $\text{source}$ ノードの開始時刻は 0, 処理時間も 0 とする. 
+    - $s_n \in \mathbb{Z} \space (n \in N)$: オペレーションの開始時刻. $\text{source}$ ノードの開始時刻は 0, 処理時間も 0 とする.
 
     ### 制約条件
 
@@ -915,30 +792,29 @@ def _(mo):
     ### 目的関数
 
     - $s_\text{target}$ が makespan を表す. これを最小化する.
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## 巡回路制約を用いた実装""")
+    mo.md(r"""
+    ## 巡回路制約を用いた実装
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-    上記のグラフにマシン自体をノードとして足し, 
+    mo.md(r"""
+    上記のグラフにマシン自体をノードとして足し,
     disjunctive edge のみを辿ってマシンごとに順回路を作成することでマシン内での実行順を記述することができる.
-    """
-    )
+    """)
     return
 
 
 @app.cell
-def _(Job, cp_model):
+def _(cp_model):
     class ModelCpSatArc:
         def __init__(self, jobs: list[Job]):
             machines = sorted(
@@ -1021,6 +897,7 @@ def _(Job, cp_model):
             self.solver.parameters.log_search_progress = True
             self.solver.parameters.max_time_in_seconds = timeout
             self.status = self.solver.solve(self.model)
+
     return (ModelCpSatArc,)
 
 
@@ -1044,15 +921,13 @@ def _(ModelCpSatArc, jobs3, mo):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     なんか全然ダメだった...
 
     区間変数より circuit constraint の方がいい場合もあるらしい[^1]が, 今回はダメそう.
 
     [^1]: https://d-krupke.github.io/cpsat-primer/04B_advanced_modelling.html
-    """
-    )
+    """)
     return
 
 

@@ -10,7 +10,7 @@
 ## Marimo 起動
 
 ```
-uv run marimo edit --headless --host 0.0.0.0 --sandbox --no-token
+marimo edit --headless --host 0.0.0.0 --sandbox --no-token
 ```
 
 Marimo をリモートマシンで起動している場合,

@@ -2,44 +2,48 @@
 # requires-python = ">=3.12"
 # dependencies = [
 #     "marimo",
-#     "ortools==9.13.4784",
+#     "ortools==9.15.6755",
 # ]
 # ///
 
 import marimo
 
-__generated_with = "0.14.0"
+__generated_with = "0.24.0"
 app = marimo.App(auto_download=["ipynb"])
 
 
 @app.cell
 def _():
     import marimo as mo
+
     return (mo,)
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""# 充足可能性問題と重み付き制約充足問題""")
+    mo.md(r"""
+    # 充足可能性問題と重み付き制約充足問題
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## 重み付き制約充足問題""")
+    mo.md(r"""
+    ## 重み付き制約充足問題
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     - 変数 $x_j \in D_j$ ($j = 1, \dots, n$) (各 $D_j$ は有限集合)
     - 制約 $C_i \subset D_1 \times \dots \times D_n$ ($i = 1, \dots, m$)
 
-    制約充足問題とは, 上記条件を満たす $(x_1, \dots, x_n)$ を 1 組見つける(か解がないことを証明するか)問題のこと. 
+    制約充足問題とは, 上記条件を満たす $(x_1, \dots, x_n)$ を 1 組見つける(か解がないことを証明するか)問題のこと.
 
-    制約からの逸脱量 $g_i(x)$ が定義できればこれを最小にする問題としても定式化できる. 
+    制約からの逸脱量 $g_i(x)$ が定義できればこれを最小にする問題としても定式化できる.
     各制約の重みを $w_i$ として重み付き制約充足問題は
 
     \begin{align}
@@ -48,28 +52,28 @@ def _(mo):
     \end{align}
 
     最適化ソルバー SCOP が紹介されているが, 時間があればやる...
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## 時間割作成問題""")
+    mo.md(r"""
+    ## 時間割作成問題
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ### パラメータ
 
     - 授業 $i$
     - 教室 $k$
     - 教員 $l$
     - 学生
-    - 期 $t$: ここでは 1 週間(5 日もしくは 6 日）の各時限を考える. 
+    - 期 $t$: ここでは 1 週間(5 日もしくは 6 日）の各時限を考える.
 
     ### 時間割を組む条件
 
@@ -121,14 +125,15 @@ def _(mo):
       - 日 $d$ におけるカリキュラム $j$ に含まれる授業数が $0$ か $2$ 以上なのかを表す 0-1 変数 $z_{jd}$ とする
       - $\sum_{t \in T_d} \sum_{i \in C_j} x_{it} \leq |T_d| z_{jd}$ (for all $d, j$)
       - $\sum_{t \in T_d} \sum_{i \in C_j} x_{it} \geq 2 z_{jd}$ (for all $d, j$)
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## OR-tools (cp-sat)""")
+    mo.md(r"""
+    ## OR-tools (cp-sat)
+    """)
     return
 
 
@@ -143,7 +148,9 @@ def _():
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### 簡単な例""")
+    mo.md(r"""
+    ### 簡単な例
+    """)
     return
 
 
@@ -172,7 +179,9 @@ def _(cp_model):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### 全ての解の列挙""")
+    mo.md(r"""
+    ### 全ての解の列挙
+    """)
     return
 
 
@@ -195,6 +204,7 @@ def _(cp_model):
         @property
         def solution_count(self):
             return self.__solution_count
+
     return (VarArraySolutionPrinter,)
 
 
@@ -225,18 +235,18 @@ def _(VarArraySolutionPrinter, cp_model):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### 例題: 覆面算""")
+    mo.md(r"""
+    ### 例題: 覆面算
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-    各文字に $0$ から $9$ の数字を入れて等式 $SEND+MORE=MONEY$ を成立させたい. 
+    mo.md(r"""
+    各文字に $0$ から $9$ の数字を入れて等式 $SEND+MORE=MONEY$ を成立させたい.
     ただし, 数字に重複があってはならず先頭の文字に $0$ を入れることはできない.
-    """
-    )
+    """)
     return
 
 
@@ -274,30 +284,28 @@ def _(D, E, M, N, O, R, S, VarArraySolutionPrinter, Y, cp_model, model):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ### 練習問題: 覆面算
 
     あとでやろう...
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### 例題: 魔方陣""")
+    mo.md(r"""
+    ### 例題: 魔方陣
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-    魔方陣とは $n \times n$の正方形の方陣に $1$ から $n^2$ までの整数を1つずつ入れて縦・横・対角線のいずれの列の和も同じになるものをいう. 
+    mo.md(r"""
+    魔方陣とは $n \times n$の正方形の方陣に $1$ から $n^2$ までの整数を1つずつ入れて縦・横・対角線のいずれの列の和も同じになるものをいう.
     (一列の和は $n (n^2 + 1) / 2$ となる)
-    """
-    )
+    """)
     return
 
 
@@ -329,32 +337,30 @@ def _(cp_model):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ### 練習問題: 完全方陣
 
     あとでやろう...
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### 例題: 数独""")
+    mo.md(r"""
+    ### 例題: 数独
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-    数独は $9 \times 9$ の正方形の枠内に $1$ から $n$ までの数字を入れるパズルである. 
-    初期配置に与えられた数字はそのままとし, 縦・横の各列とブロックとよばれる $3 \times 3$ の小正方形の枠内には同じ数字を重複して入れてはいけないものとする. 
+    mo.md(r"""
+    数独は $9 \times 9$ の正方形の枠内に $1$ から $n$ までの数字を入れるパズルである.
+    初期配置に与えられた数字はそのままとし, 縦・横の各列とブロックとよばれる $3 \times 3$ の小正方形の枠内には同じ数字を重複して入れてはいけないものとする.
 
     以下のデータでは, 数字の $0$ が入っている枠は空白であるとする.
-    """
-    )
+    """)
     return
 
 
@@ -419,25 +425,21 @@ def _(VarArraySolutionPrinter, cp_model, line, model_sudoku, x):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ### 練習問題: 数独
 
     気が向いたらやる...
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ### 練習問題: 不等式パズル
 
     やっておきたい
-    """
-    )
+    """)
     return
 
 

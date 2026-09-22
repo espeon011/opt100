@@ -2,19 +2,20 @@
 # requires-python = ">=3.13"
 # dependencies = [
 #     "marimo",
-#     "pyscipopt==5.5.0",
+#     "pyscipopt==6.2.1",
 # ]
 # ///
 
 import marimo
 
-__generated_with = "0.14.0"
+__generated_with = "0.24.0"
 app = marimo.App(width="medium")
 
 
 @app.cell
 def _():
     import marimo as mo
+
     return (mo,)
 
 
@@ -22,40 +23,42 @@ def _():
 def _():
     import random
     import pyscipopt as scip
+
     return random, scip
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""# 1 機械総納期遅れ最小化問題""")
+    mo.md(r"""
+    # 1 機械総納期遅れ最小化問題
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## 離接定式化""")
+    mo.md(r"""
+    ## 離接定式化
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     - 機械: 1 つだけ
     - ジョブ: $J = \{ 1, \dots, n \}$
     - $p_j$: ジョブ $j$ の処理時間
     - $d_j$: ジョブ $j$ の納期
 
     各ジョブ $j$ について $d_j$ からの遅れの重み付き和を最小化する.
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     $M$ を大きな定数として
 
     \begin{align*}
@@ -65,14 +68,15 @@ def _(mo):
     & &\sum_{k \neq j} p_k x_{kj} +p_j &\leq d_j + T_j  \ &(\forall j \in J) \\
     & &x_{jk} &\in \{ 0, 1 \}
     \end{align*}
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## 実装""")
+    mo.md(r"""
+    ## 実装
+    """)
     return
 
 
@@ -82,6 +86,7 @@ def _(random):
         """
         Data generator for the one machine scheduling problem.
         """
+        random.seed(0)
         p, r, d, w = {}, {}, {}, {}
 
         J = range(1, n + 1)
@@ -96,6 +101,7 @@ def _(random):
             d[j] = r[j] + random.randint(0, 5)
 
         return J, p, r, d, w
+
     return (make_data,)
 
 
@@ -157,6 +163,7 @@ def _(scip):
         model.setObjective(scip.quicksum(w[j] * T[j] for j in J), sense="minimize")
 
         return model, x, T
+
     return (scheduling_linear_ordering,)
 
 

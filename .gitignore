@@ -13,3 +13,4 @@ wheels/
 .virtual_documents/
 .ipynb_checkpoints/
 .env
+**/__marimo__/session/

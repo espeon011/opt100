@@ -21,21 +21,26 @@
         nativeBuildInputs = [];
         BuildInputs = [];
         packages = [
-          pkgs.python313
+          pkgs.python314
           pkgs.uv
           pkgs.pyrefly
           pkgs.ty
           pkgs.ruff
-          pkgs.uv
+          pkgs.marimo
           pkgs.unzip
         ];
 
-        # uv add <パッケージ名> をした後に実行してランタイムエラーになる場合,
+        # uv で追加したパッケージがランタイムエラーを引き起こす場合,
         # ここにライブラリを書けば解決するかもしれない
         LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath (with pkgs; [
           libgcc.lib
           zlib
         ]);
+
+        # 内部で pypi 側の marimo を使うようにする
+        shellHook = ''
+          unset PYTHONPATH
+        '';
       };
     });
 }

@@ -2,46 +2,48 @@
 # requires-python = ">=3.12"
 # dependencies = [
 #     "marimo",
-#     "pyscipopt==5.5.0",
+#     "pyscipopt==6.2.1",
 # ]
 # ///
 
 import marimo
 
-__generated_with = "0.14.0"
+__generated_with = "0.24.0"
 app = marimo.App(width="medium")
 
 
 @app.cell
 def _():
     import marimo as mo
+
     return (mo,)
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""# 錐最適化問題""")
+    mo.md(r"""
+    # 錐最適化問題
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     \begin{align}
     &\text{maximize} & 2 x + 2 y + z \\
     &\text{s.t.} & x^2 + y^2 \leq z^2 \\
     & & 2 x + 3 y + 4 z \leq 10 \\
     & & x, y, z \geq 0
     \end{align}
-    """
-    )
+    """)
     return
 
 
 @app.cell
 def _():
     from pyscipopt import Model
+
     return (Model,)
 
 

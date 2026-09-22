@@ -1,93 +1,91 @@
 # /// script
 # requires-python = ">=3.13"
 # dependencies = [
-#     "highspy==1.11.0",
+#     "highspy==1.15.1",
 #     "marimo",
-#     "ortools==9.13.4784",
-#     "pydantic==2.11.7",
+#     "pydantic==2.13.5",
 # ]
 # ///
 
 import marimo
 
-__generated_with = "0.14.0"
+__generated_with = "0.24.0"
 app = marimo.App(width="medium")
+
+with app.setup:
+    from typing import Self
+
+    import pydantic
 
 
 @app.cell
 def _():
     import marimo as mo
+
     return (mo,)
 
 
 @app.cell
 def _():
     import os
-    from typing import Self
     from pathlib import Path
-    import pydantic
     import highspy
-    from ortools.sat.python import cp_model
-    return Path, Self, cp_model, highspy, os, pydantic
+
+    return Path, highspy, os
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""# 資源制約付きプロジェクトスケジューリング問題""")
+    mo.md(r"""
+    # 資源制約付きプロジェクトスケジューリング問題
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ### 入力データ
 
     - ジョブの集合 $\mathrm{Job}$, 添字は $j, k$
     - 資源の集合 $\mathrm{Res}$, 添字は $r$
     - ジョブ間の時間成約を表す集合 $\mathrm{Prec} \subset \mathrm{Job} \times \mathrm{Job}$
-        - $(j,k) \in \mathrm{Prec}$ のとき ジョブ $j$ とジョブ $k$ の時刻間に何かしらの関係がある. 
+        - $(j,k) \in \mathrm{Prec}$ のとき ジョブ $j$ とジョブ $k$ の時刻間に何かしらの関係がある.
     - 最大の期数 $T$, 添字は $t, s \in \{1, \dots, T \}$
-        - 期間 $t$ は時刻 $t-1$ から時刻 $t$ までであるとする. 
+        - 期間 $t$ は時刻 $t-1$ から時刻 $t$ までであるとする.
     - ジョブ $j$ の処理時間 $p_j$
     - ジョブ $j$ を期 $t$ に開始したときの費用 $\mathrm{Cost}_{jt}$
     - ジョブ $j$ の開始後 $t$ 期経過時の処理に要する資源 $r$ の量 $a_{jrt}$
     - 期 $t$ における資源 $r$ の使用可能量上限 $\mathrm{RUB}_{rt}$
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ### 変数
 
     - $x_{jt} \in \{ 0, 1 \}$: ジョブ $j$ を期 $t$ に開始するとき $1$, それ以外は $0$
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ### 目的関数
 
     $$
     \min \sum_{j \in \mathrm{Job}} \sum_{t=1}^{T-p_j+1} \mathrm{Cost}_{jt} x_{jt}
     $$
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ### 制約条件
 
     - ジョブ遂行成約:
@@ -95,8 +93,7 @@ def _(mo):
     - 資源成約:
       $\sum_{j \in \mathrm{Job}} \sum_{s = \max(t - p_j + 1, 1)}^{\min(t, T - p_j + 1)} a_{jr,t-s} x_{js} \leq \mathrm{RUB}_{rt} \quad (\forall r \in \mathrm{Res}, \forall t \in \{ 1, \dots, T \})$
     - 時間制約: $\sum_{t=2}^{T-p_j+1} (t-1)x_{jt} + p_j \leq \sum_{t=2}^{T-p_k+1} (t-1) x_{kt} \quad (\forall (j,k) \in \mathrm{Prec})$
-    """
-    )
+    """)
     return
 
 
@@ -219,7 +216,21 @@ def make_2r():
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## HiGHS によるモデリング""")
+    mo.md(r"""
+    ## HiGHS によるモデリング
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    CP-SAT (区間変数 + cumulative 制約) で解くのは `resource_constrained_cpsat.py` に分離.
+
+    OR-Tools と highspy はどっちも HiGHS を `libhighs.so.1` という同じ名前で同梱していて,
+    同じプロセスで両方 import すると後から読んだ方がバージョン違いの HiGHS を掴んで `ImportError` になる.
+    (ortools 9.15.6755 の中身は HiGHS 1.12.0, highspy 1.15.1 は HiGHS 1.15.1)
+    """)
     return
 
 
@@ -275,6 +286,7 @@ def _(highspy):
             self.model.minimize(self.objective)
             self.solution = self.model.getSolution()
             self.info = self.model.getInfo()
+
     return (Model1Highs,)
 
 
@@ -328,26 +340,26 @@ def _(model2):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## インスタンス""")
+    mo.md(r"""
+    ## インスタンス
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ### kobe-scheduling
 
     - リンク: https://github.com/ptal/kobe-scheduling
-    - データフォーマットはデータによって異なり, 特に説明もない. 
+    - データフォーマットはデータによって異なり, 特に説明もない.
       https://github.com/ptal/kobe-scheduling/data/rcpsp/patterson.rcp であれば (多分)
         - 1 行目: ジョブの数, リソースの種類
         - 3 行目: 各リソースの上限値
-        - 5 行目以降: ジョブの情報が並ぶ. 
+        - 5 行目以降: ジョブの情報が並ぶ.
           処理時間, [リソースの消費数, ...], 後続ジョブ数, [後続ジョブ番号, ...]
     - 目的関数は makespan (多分)
-    """
-    )
+    """)
     return
 
 
@@ -358,67 +370,67 @@ def _(Path, os):
     return (data_dir,)
 
 
-@app.cell
-def _(Self, pydantic):
-    class Job(pydantic.BaseModel):
-        model_config = pydantic.ConfigDict(frozen=True)
-        id: int
-        time: int
-        res_usages: list[int]
+@app.class_definition
+class Job(pydantic.BaseModel):
+    model_config = pydantic.ConfigDict(frozen=True)
+    id: int
+    time: int
+    res_usages: list[int]
 
 
-    class Resource(pydantic.BaseModel):
-        model_config = pydantic.ConfigDict(frozen=True)
-        ub: int
+@app.class_definition
+class Resource(pydantic.BaseModel):
+    model_config = pydantic.ConfigDict(frozen=True)
+    ub: int
 
 
-    class Condition(pydantic.BaseModel):
-        model_config = pydantic.ConfigDict(frozen=True)
-        jobs: list[Job]
-        ress: list[Resource]
-        prec: set[tuple[int, int]]
+@app.class_definition
+class Condition(pydantic.BaseModel):
+    model_config = pydantic.ConfigDict(frozen=True)
+    jobs: list[Job]
+    ress: list[Resource]
+    prec: set[tuple[int, int]]
 
-        @staticmethod
-        def from_file(filepath) -> Self:
-            prec = set()
-            with open(filepath) as f:
-                _njobs, _nress = map(lambda s: int(s), f.readline().split())
+    @classmethod
+    def from_file(cls, filepath) -> Self:
+        prec = set()
+        with open(filepath) as f:
+            _njobs, _nress = map(lambda s: int(s), f.readline().split())
 
-                f.readline()
+            f.readline()
 
-                resubs = list(map(lambda s: int(s), f.readline().split()))
+            resubs = list(map(lambda s: int(s), f.readline().split()))
 
-                ress = [Resource(ub=resub) for resub in resubs]
+            ress = [Resource(ub=resub) for resub in resubs]
 
-                jobs = []
-                job_id = 0
-                while line := f.readline():
-                    datas = list(map(lambda s: int(s), line.split()))
-                    if len(datas) == 0:
-                        continue
+            jobs = []
+            job_id = 0
+            while line := f.readline():
+                datas = list(map(lambda s: int(s), line.split()))
+                if len(datas) == 0:
+                    continue
 
-                    idx = 0
-                    time = datas[idx]
+                idx = 0
+                time = datas[idx]
+                idx += 1
+                res_usages = [datas[idx + jdx] for jdx in range(_nress)]
+                idx += _nress
+
+                # 次から始まる数値列の長さなのでスキップ
+                idx += 1
+
+                while idx < len(datas):
+                    prec.add((job_id, datas[idx] - 1))
                     idx += 1
-                    res_usages = [datas[idx + jdx] for jdx in range(_nress)]
-                    idx += _nress
 
-                    # 次から始まる数値列の長さなのでスキップ
-                    idx += 1
+                jobs.append(Job(id=job_id, time=time, res_usages=res_usages))
+                job_id += 1
 
-                    while idx < len(datas):
-                        prec.add((job_id, datas[idx] - 1))
-                        idx += 1
-
-                    jobs.append(Job(id=job_id, time=time, res_usages=res_usages))
-                    job_id += 1
-
-            return Condition(jobs=jobs, ress=ress, prec=prec)
-    return (Condition,)
+        return cls(jobs=jobs, ress=ress, prec=prec)
 
 
 @app.cell
-def _(Condition, Path, data_dir):
+def _(Path, data_dir):
     _filepath = data_dir / Path("pat1.rcp")
     cond1 = Condition.from_file(_filepath)
     return (cond1,)
@@ -431,7 +443,7 @@ def _(cond1):
 
 
 @app.cell
-def _(Condition, highspy):
+def _(highspy):
     class Model2Highs:
         def __init__(self, cond: Condition):
             self.model = highspy.Highs()
@@ -497,6 +509,7 @@ def _(Condition, highspy):
             self.model.minimize(self.objective)
             self.solution = self.model.getSolution()
             self.info = self.model.getInfo()
+
     return (Model2Highs,)
 
 
@@ -518,77 +531,7 @@ def _(model3):
 
 
 @app.cell
-def _(Condition, cp_model):
-    class Model2CpSat:
-        def __init__(self, cond: Condition):
-            self.model = cp_model.CpModel()
-
-            horizon = sum(job.time for job in cond.jobs)
-
-            self.starts = [
-                self.model.new_int_var(lb=0, ub=horizon - job.time, name="")
-                for job in cond.jobs
-            ]
-            self.jobs = [
-                self.model.new_fixed_size_interval_var(
-                    self.starts[id_job], job.time, name=""
-                )
-                for id_job, job in enumerate(cond.jobs)
-            ]
-
-            # ジョブ間依存関係
-            for idx, jdx in cond.prec:
-                self.model.add(
-                    self.jobs[idx].end_expr() <= self.jobs[jdx].start_expr()
-                )
-
-            # 資源制約
-            for id_res, res in enumerate(cond.ress):
-                capacity = res.ub
-                intervals = []
-                demands = []
-                for id_job, job in enumerate(cond.jobs):
-                    if job.res_usages[id_res] == 0:
-                        continue
-                    intervals.append(self.jobs[id_job])
-                    demands.append(job.res_usages[id_res])
-
-                self.model.add_cumulative(intervals, demands, capacity)
-
-            # 目的関数: makespan
-            self.objective = self.model.new_int_var(lb=0, ub=horizon, name="")
-            self.model.add_max_equality(
-                self.objective, [interval.end_expr() for interval in self.jobs]
-            )
-            self.model.minimize(self.objective)
-
-        def solve(self, timeout: int = 180):
-            self.solver = cp_model.CpSolver()
-            self.solver.parameters.log_search_progress = True
-            self.solver.parameters.max_time_in_seconds = timeout
-            self.status = self.solver.solve(self.model)
-    return (Model2CpSat,)
-
-
-@app.cell
-def _(Model2CpSat, cond1):
-    model4 = Model2CpSat(cond1)
-    model4.solve()
-    return (model4,)
-
-
-@app.cell
-def _(model4):
-    print(f"Opt.value = {model4.solver.value(model4.objective)}")
-
-    for _id_job, interval in enumerate(model4.jobs):
-        _val = model4.solver.value(interval.start_expr())
-        print(f"s[{_id_job}] = {_val}")
-    return
-
-
-@app.cell
-def _(Condition, Path, data_dir):
+def _(Path, data_dir):
     _filepath = data_dir / Path("pat104.rcp")
     cond2 = Condition.from_file(_filepath)
     return (cond2,)
@@ -598,18 +541,6 @@ def _(Condition, Path, data_dir):
 def _(Model2Highs, cond2):
     model5 = Model2Highs(cond2)
     model5.solve()
-    return
-
-
-@app.cell
-def _(Model2CpSat, cond2):
-    model6 = Model2CpSat(cond2)
-    model6.solve()
-    return
-
-
-@app.cell
-def _():
     return
 
 

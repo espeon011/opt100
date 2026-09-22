@@ -1,23 +1,23 @@
 # /// script
 # requires-python = ">=3.13"
 # dependencies = [
-#     "didppy==0.9.0",
+#     "didppy==0.11.1",
 #     "marimo",
-#     "ortools==9.13.4784",
-#     "pydantic==2.11.7",
-#     "ruff==0.11.5",
+#     "ortools==9.15.6755",
+#     "pydantic==2.13.5",
 # ]
 # ///
 
 import marimo
 
-__generated_with = "0.14.0"
+__generated_with = "0.24.0"
 app = marimo.App(width="medium")
 
 
 @app.cell
 def _():
     import marimo as mo
+
     return (mo,)
 
 
@@ -28,30 +28,34 @@ def _():
     import pydantic
     from ortools.sat.python import cp_model
     import didppy
+
     return Self, cp_model, didppy, pydantic, random
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""# タレントスケジューリング問題""")
+    mo.md(r"""
+    # タレントスケジューリング問題
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## 問題""")
+    mo.md(r"""
+    ## 問題
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-    映画の各シーンを撮影する. 
-    各シーンには出演する役者が決まっており, 
-    同じ役者が出演するシーンは同時に撮影することはできない. 
-    各役者には初回撮影日から最終撮影日までの日数分のギャラを支払わねばならない. 
-    間に撮影の無い日があってもその日の報酬も支払われることになる. 
+    mo.md(r"""
+    映画の各シーンを撮影する.
+    各シーンには出演する役者が決まっており,
+    同じ役者が出演するシーンは同時に撮影することはできない.
+    各役者には初回撮影日から最終撮影日までの日数分のギャラを支払わねばならない.
+    間に撮影の無い日があってもその日の報酬も支払われることになる.
     この問題では支払うギャラを最小化する.
 
     - $S = \{ 1, \dots, n \}$: 撮影シーン
@@ -59,14 +63,15 @@ def _(mo):
     - $A_s \subset A \space (\forall s \in S)$: シーン $s$ を撮るのに必要な役者
     - $d_s \in \mathbb{N} \space (\forall s \in S)$: シーン $s$ を撮るのに必要な日数
     - $c_a \in \mathbb{N} \space (\forall a \in A)$: 役者 $a$ を 1 日拘束することで発生するギャラ
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## 実装""")
+    mo.md(r"""
+    ## 実装
+    """)
     return
 
 
@@ -109,6 +114,7 @@ def _(Self, pydantic, random):
             ]
 
             return Condition(actors=actors, scenes=scenes)
+
     return Actor, Condition, Scene
 
 
@@ -139,14 +145,15 @@ def _(Actor, Condition, Scene):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### Google OR-Tools でのモデリング""")
+    mo.md(r"""
+    ### Google OR-Tools でのモデリング
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     #### 決定変数
 
     - $\text{interval}_s = [\text{start}_s, \text{end}_s) \space (\forall s \in S)$: 各シーンの撮影期間を表す区間変数.
@@ -165,8 +172,7 @@ def _(mo):
     - 各役者は同時に 1 つのシーンの撮影しかできない:
       $\text{no-overlap} \{ I_s \mid s \in S, \space a \in A_s \}$
         - × $\to$ どうやら撮影は平行に行えないらしい. 課すべき制約は $\text{no-overlap} \{ I_s \mid s \in S\}$
-    """
-    )
+    """)
     return
 
 
@@ -238,6 +244,7 @@ def _(Condition, cp_model):
 
             for name, start in shoots:
                 print(f"{name} starts at {start}")
+
     return (ModelCpSat,)
 
 
@@ -258,28 +265,29 @@ def _(model1):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""### didp でのモデリング""")
+    mo.md(r"""
+    ### didp でのモデリング
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     #### DP Formulation
 
-    シーンの撮影が途中まで完了し, 残りが $Q \subset S$ であるとする. 
+    シーンの撮影が途中まで完了し, 残りが $Q \subset S$ であるとする.
     次に $s \in Q$ を撮る場合, 拘束される役者の集合 $L(s, Q)$ は
 
     \[
         L(s, Q) = A_s \cup \left( \bigcup_{s' \in S \setminus Q} A_{s'} \cap \bigcup_{s' \in Q} A_{s'} \right)
     \]
 
-    となる. 
-    右辺の大括弧内は今までのシーン $S \setminus Q$ の撮影で既に呼び寄せていて, 
-    この先も撮影があるため解放できない役者の集合を表す. 
-    シーン $s$ の撮影が終わると支払われるギャラが $d_s \sum_{a \in L(s, Q)} c_a$ だけ増加し, 
-    $Q$ が $Q \setminus \{ s \}$ で更新される. 
+    となる.
+    右辺の大括弧内は今までのシーン $S \setminus Q$ の撮影で既に呼び寄せていて,
+    この先も撮影があるため解放できない役者の集合を表す.
+    シーン $s$ の撮影が終わると支払われるギャラが $d_s \sum_{a \in L(s, Q)} c_a$ だけ増加し,
+    $Q$ が $Q \setminus \{ s \}$ で更新される.
 
     \begin{align*}
         &\text{compute} & &V(S) \\
@@ -293,15 +301,15 @@ def _(mo):
 
     #### Force Transition
 
-    シーン $s \in Q$ に必要な役者がすでに現場に拘束されておりかつ, 
+    シーン $s \in Q$ に必要な役者がすでに現場に拘束されておりかつ,
     $s$ がその全員を必要とする撮影の場合, つまり
 
     \[
         A_s = \bigcup_{s' \in S \setminus Q} A_{s'} \cap \bigcup_{s' \in Q} A_{s'} \quad (s \in Q)
     \]
 
-    のとき, シーン $s$ を直ちに撮影するのが最適となる. 
-    この場合, 上記の更新規則より高い優先順位で下記の更新を行う. 
+    のとき, シーン $s$ を直ちに撮影するのが最適となる.
+    この場合, 上記の更新規則より高い優先順位で下記の更新を行う.
 
     \[
         V(Q) = d_s \sum_{a \in A_s} c_a + V(Q \setminus \{ s \})
@@ -309,14 +317,13 @@ def _(mo):
 
     #### Dual Bound
 
-    ドメイン知識で計算の高速化ができるっぽい. 
-    今回のケースだと下記のような制約を入れる. 
+    ドメイン知識で計算の高速化ができるっぽい.
+    今回のケースだと下記のような制約を入れる.
 
     \[
         V(Q) \geq \sum_{s \in Q} d_s \sum_{a \in A_s} c_a
     \]
-    """
-    )
+    """)
     return
 
 
@@ -428,6 +435,7 @@ def _(Condition, didppy):
 
             print()
             print(f"Cost: {self.solution.cost}")
+
     return (ModelDidp,)
 
 

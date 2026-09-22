@@ -2,19 +2,20 @@
 # requires-python = ">=3.13"
 # dependencies = [
 #     "marimo",
-#     "pyscipopt==5.5.0",
+#     "pyscipopt==6.2.1",
 # ]
 # ///
 
 import marimo
 
-__generated_with = "0.14.0"
+__generated_with = "0.24.0"
 app = marimo.App(width="medium")
 
 
 @app.cell
 def _():
     import marimo as mo
+
     return (mo,)
 
 
@@ -22,38 +23,40 @@ def _():
 def _():
     import random
     import pyscipopt as scip
+
     return random, scip
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""# 順列フローショップ問題""")
+    mo.md(r"""
+    # 順列フローショップ問題
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     $n$ 個のジョブを $m$ 台のマシンで順番に処理する.
     各ジョブはマシン 1, マシン 2, ... で順に処理されマシン $m$ で処理されると完了になる.
 
     ![](https://www.researchgate.net/profile/Mariusz-Makuchowski/publication/280775329/figure/fig1/AS:284468087672848@1444833885900/Schedules-of-the-different-variants-of-the-flow-shop-problem.png)
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## 位置データ定式化""")
+    mo.md(r"""
+    ## 位置データ定式化
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ## 定数
 
     - ジョブ: $J = \{ 1, \dots, n \}$
@@ -65,15 +68,13 @@ def _(mo):
     - $x_{j \kappa} \in \{ 0, 1 \}$: ジョブ $j$ を並べた時の順番が $\kappa$ 番目であるとき $1$.
     - $s_{i \kappa}$: マシン $i$ の $\kappa$ 番目に並べられているジョブの開始時刻
     - $f_{i \kappa}$: マシン $i$ の $\kappa$ 番目に並べられているジョブの終了時刻
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     \begin{align*}
     &\text{minimize} &f_{mn} \\
     &\text{s.t.} &\sum_{\kappa} x_{j \kappa} &= 1 \ &(\forall j \in J) \\
@@ -85,14 +86,15 @@ def _(mo):
     & &s_{i \kappa} &\geq 0 \ &(\forall i \in M, \kappa = 1, \dots, n) \\
     & &f_{i \kappa} &\geq 0 \ &(\forall i \in M, \kappa = 1, \dots, n) \\
     \end{align*}
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## 実装""")
+    mo.md(r"""
+    ## 実装
+    """)
     return
 
 
@@ -100,11 +102,13 @@ def _(mo):
 def _(random):
     def make_data_permutation_flow_shop(n, m):
         """make_data: prepare matrix of m times n random processing times"""
+        random.seed(0)
         p = {}
         for i in range(1, m + 1):
             for j in range(1, n + 1):
                 p[i, j] = random.randint(1, 10)
         return p
+
     return (make_data_permutation_flow_shop,)
 
 
@@ -160,6 +164,7 @@ def _(scip):
         model.setObjective(f[m, n], sense="minimize")
 
         return model, x, s, f
+
     return (permutation_flow_shop,)
 
 
@@ -172,11 +177,6 @@ def _(make_data_permutation_flow_shop, permutation_flow_shop):
     model, x, s, f = permutation_flow_shop(n, m, p)
     model.optimize()
     print("Opt.value=", model.getObjVal())
-    return
-
-
-@app.cell
-def _():
     return
 
 

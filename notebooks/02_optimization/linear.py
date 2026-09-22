@@ -2,46 +2,48 @@
 # requires-python = ">=3.12"
 # dependencies = [
 #     "marimo",
-#     "ortools==9.13.4784",
+#     "ortools==9.15.6755",
 # ]
 # ///
 
 import marimo
 
-__generated_with = "0.14.0"
+__generated_with = "0.24.0"
 app = marimo.App(width="medium")
 
 
 @app.cell
 def _():
     import marimo as mo
+
     return (mo,)
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""# 線形最適化問題""")
+    mo.md(r"""
+    # 線形最適化問題
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     \begin{align}
     &\text{maximize} & 15x_1 + 18 x_2 & \\
     &\text{s.t.} & 2x_1 + x_2 &\leq 60 \\
     & & x_1 + 2 x_2 &\leq 60 \\
     & & x_1, x_2 &\geq 0
     \end{align}
-    """
-    )
+    """)
     return
 
 
 @app.cell
 def _():
     from ortools.math_opt.python import mathopt
+
     return (mathopt,)
 
 

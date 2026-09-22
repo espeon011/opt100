@@ -2,21 +2,22 @@
 # requires-python = ">=3.13"
 # dependencies = [
 #     "marimo",
-#     "ortools==9.13.4784",
-#     "pycsp3==2.4.3",
-#     "pyscipopt==5.5.0",
+#     "ortools==9.15.6755",
+#     "pycsp3==2.6.1",
+#     "pyscipopt==6.2.1",
 # ]
 # ///
 
 import marimo
 
-__generated_with = "0.14.0"
+__generated_with = "0.24.0"
 app = marimo.App(width="medium")
 
 
 @app.cell
 def _():
     import marimo as mo
+
     return (mo,)
 
 
@@ -25,19 +26,21 @@ def _():
     import random
     import pyscipopt as scip
     from ortools.sat.python import cp_model
+
     return cp_model, random, scip
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""# 1 機械リリース時刻付き重み付き完了時刻和最小化問題""")
+    mo.md(r"""
+    # 1 機械リリース時刻付き重み付き完了時刻和最小化問題
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     - 機械: 1 つだけ
     - ジョブ $J = \{ 1, \dots, n \}$
     - 各ジョブの処理時間: $p_j \ (\forall j \in J)$
@@ -46,21 +49,21 @@ def _(mo):
     - 各ジョブの処理完了時刻: $C_j \ (\forall j \in J)$
 
     $C_j$ の重み付き和を最小化する.
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## 離接定式化(Disjunctive formulation)""")
+    mo.md(r"""
+    ## 離接定式化(Disjunctive formulation)
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     $M$ を大きな定数として
 
     \begin{align*}
@@ -76,14 +79,15 @@ def _(mo):
         - $x_{jk}$: ジョブ $j$ がジョブ $k$ に先行するとき $1$
     - 補足
         - 目的関数の第 2 項目は定数であるため第 1 項だけを最小化すればよい
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## 実装""")
+    mo.md(r"""
+    ## 実装
+    """)
     return
 
 
@@ -109,6 +113,7 @@ def _(random):
             d[j] = r[j] + random.randint(0, 5)
 
         return J, p, r, d, w
+
     return (make_data,)
 
 
@@ -179,6 +184,7 @@ def _(scip):
                     ]
                 )
             ]
+
     return (ModelDisjunctiveScip,)
 
 
@@ -250,6 +256,7 @@ def _(scip):
                     ]
                 )
             ]
+
     return (ModelIntervalScip,)
 
 
@@ -310,6 +317,7 @@ def _(cp_model):
                     ]
                 )
             ]
+
     return (ModelDisjunctiveCpSat,)
 
 
@@ -361,6 +369,7 @@ def _(cp_model):
                     ]
                 )
             ]
+
     return (ModelIntervalCpSat,)
 
 
@@ -380,17 +389,18 @@ def _(mo):
 
 @app.cell
 def _(J, ModelDisjunctiveScip, mo, p, r, run_scip_disj, w):
-    if run_scip_disj.value:
-        _model = ModelDisjunctiveScip(J, p, r, w)
-        with mo.redirect_stderr():
-            _model.solve()
+    mo.stop(not run_scip_disj.value)
 
-        _z = _model.get_z()
-        _seq = _model.get_seq()
-        mo.md(f"""
-        - Opt.value by Disjunctive Formulation: {_z}
-        - Solution: {_seq}
-        """)
+    _model = ModelDisjunctiveScip(J, p, r, w)
+    with mo.redirect_stderr():
+        _model.solve()
+
+    _z = _model.get_z()
+    _seq = _model.get_seq()
+    mo.md(f"""
+    - Opt.value by Disjunctive Formulation: {_z}
+    - Solution: {_seq}
+    """)
     return
 
 
@@ -403,17 +413,18 @@ def _(mo):
 
 @app.cell
 def _(J, ModelIntervalScip, mo, p, r, run_scip_interval, w):
-    if run_scip_interval.value:
-        _model = ModelIntervalScip(J, p, r, w)
-        with mo.redirect_stderr():
-            _model.solve()
+    mo.stop(not run_scip_interval.value)
 
-        _z = _model.get_z()
-        _seq = _model.get_seq()
-        mo.md(f"""
-        - Optimal value: {_z}
-        - Solution: {_seq}
-        """)
+    _model = ModelIntervalScip(J, p, r, w)
+    with mo.redirect_stderr():
+        _model.solve()
+
+    _z = _model.get_z()
+    _seq = _model.get_seq()
+    mo.md(f"""
+    - Optimal value: {_z}
+    - Solution: {_seq}
+    """)
     return
 
 
@@ -444,11 +455,6 @@ def _(J, ModelIntervalCpSat, mo, p, r, w):
     - Optimal value: {_z}
     - Solution: {_seq}
     """)
-    return
-
-
-@app.cell
-def _():
     return
 
 

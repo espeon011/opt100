@@ -2,35 +2,37 @@
 # requires-python = ">=3.12"
 # dependencies = [
 #     "marimo",
-#     "matplotlib==3.10.3",
-#     "ortools==9.13.4784",
-#     "pandas==2.3.0",
-#     "pyscipopt==5.5.0",
+#     "matplotlib==3.11.2",
+#     "ortools==9.15.6755",
+#     "pandas==3.0.6",
+#     "pyscipopt==6.2.1",
 # ]
 # ///
 
 import marimo
 
-__generated_with = "0.14.0"
+__generated_with = "0.24.0"
 app = marimo.App(width="medium", auto_download=["ipynb"])
 
 
 @app.cell
 def _():
     import marimo as mo
+
     return (mo,)
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""# 栄養問題""")
+    mo.md(r"""
+    # 栄養問題
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     - 定数
       - $F$: 商品の集合
       - $N$: 栄養素の集合
@@ -46,8 +48,7 @@ def _(mo):
     &\text{s.t.} & a_i \leq \sum_{j \in F} n_{ij} x_j \leq b_i \ (\forall i \in N) \\
     & & x_j \geq 0 \ (\forall j \in F)
     \end{align}
-    """
-    )
+    """)
     return
 
 
@@ -56,27 +57,28 @@ def _():
     from ortools.math_opt.python import mathopt
     import pyscipopt
     import pandas as pd
+
     return mathopt, pd, pyscipopt
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## 実行不能のケース""")
+    mo.md(r"""
+    ## 実行不能のケース
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     \begin{align}
     &\text{maximize} & x_1 + x_2 \\
     &\text{s.t.} & x_1 - x_2 \leq -1 \\
     & & - x_1 + x_2 \leq -1 \\
     & & x_1, x_2 \geq 0
     \end{align}
-    """
-    )
+    """)
     return
 
 
@@ -100,22 +102,22 @@ def _(mathopt):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## 非有界のケース""")
+    mo.md(r"""
+    ## 非有界のケース
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     \begin{align}
     &\text{maximize} & x_1 + x_2 \\
     &\text{s.t.} & x_1 - x_2 \geq -1 \\
     & & - x_1 + x_2 \geq -1 \\
     & & x_1, x_2 \geq 0
     \end{align}
-    """
-    )
+    """)
     return
 
 
@@ -139,40 +141,40 @@ def _(mathopt):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## 実行不可能性の対処法(制約の逸脱を許すモデル化)""")
+    mo.md(r"""
+    ## 実行不可能性の対処法(制約の逸脱を許すモデル化)
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-    栄養素摂取量制約の逸脱を許すために摂取量の不足分と超過分を表す決定変数を用意する. 
+    mo.md(r"""
+    栄養素摂取量制約の逸脱を許すために摂取量の不足分と超過分を表す決定変数を用意する.
 
     - $d_i \in \mathbb{R}_{\geq 0}$: 栄養素 $i$ に対する不足変数
     - $s_i \in \mathbb{R}_{\geq 0}$: 栄養素 $i$ に対する超過変数
 
-    制約を以下のように変更する. 
+    制約を以下のように変更する.
 
     $$
     a_i - d_i \leq \sum_{j \in F} n_{ij} x_j \leq b_i + s_i \ (\forall i \in N)
     $$
 
-    目的関数には以下の逸脱ペナルティを追加する($M$ は十分大きな定数). 
+    目的関数には以下の逸脱ペナルティを追加する($M$ は十分大きな定数).
 
     $$
     \text{minimize} \sum_{j \in F} c_j x_j + M \sum_{i \in N} (d_i + s_i)
     $$
 
-    結果, 以下のような定式化になる. 
+    結果, 以下のような定式化になる.
 
     \begin{align}
     &\text{minimize} & \sum_{j \in F} c_j x_j + M \sum_{i \in N} (d_i + s_i) \\
     &\text{s.t.} & a_i - d_i \leq \sum_{j \in F} n_{ij} x_j \leq b_i + s_i \ (\forall i \in N) \\
     & & x_j \geq 0 \ (\forall j \in F)
     \end{align}
-    """
-    )
+    """)
     return
 
 
@@ -373,13 +375,17 @@ def _(result1):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""# 逸脱最小化""")
+    mo.md(r"""
+    # 逸脱最小化
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""整数変数の連続変数化, 制約の逸脱をコスト関数化.""")
+    mo.md(r"""
+    整数変数の連続変数化, 制約の逸脱をコスト関数化.
+    """)
     return
 
 
@@ -447,33 +453,34 @@ def _(model1):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""# 既約不整合部分系""")
+    mo.md(r"""
+    # 既約不整合部分系
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     既約不整合部分系 (irreducible Inconsistent Subsystem: IIS)
 
     - 実行不可能
     - 上下限もしくは制約を1つ除くと実行可能になる
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""# 混合問題""")
+    mo.md(r"""
+    # 混合問題
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     - 定数
       - $I$: 原料の集合
       - $K$: 成分の集合
@@ -490,8 +497,7 @@ def _(mo):
     & & \sqrt{\varepsilon^2 \sum_{i \in I} x_i^2} \leq -LB_k + \sum_{i \in I} a_{ik} x_i \quad (\forall k \in K) \\
     & & x_i \geq 0 \quad (\forall i \in I)
     \end{align}
-    """
-    )
+    """)
     return
 
 
@@ -549,6 +555,7 @@ def _(pyscipopt):
         model.setObjective(objective, sense="minimize")
 
         return model
+
     return (prodmix,)
 
 

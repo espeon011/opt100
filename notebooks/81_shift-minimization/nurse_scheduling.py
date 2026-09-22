@@ -2,46 +2,51 @@
 # requires-python = ">=3.13"
 # dependencies = [
 #     "marimo",
-#     "nbformat==5.10.4",
-#     "ortools==9.14.6206",
+#     "nbformat==5.11.1",
+#     "ortools==9.15.6755",
 # ]
 # ///
 
 import marimo
 
-__generated_with = "0.14.7"
+__generated_with = "0.24.0"
 app = marimo.App(width="medium")
 
 
 @app.cell
 def _():
     import marimo as mo
+
     return (mo,)
 
 
 @app.cell
 def _():
     from ortools.sat.python import cp_model
+
     return (cp_model,)
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""# 看護師スケジューリング問題""")
+    mo.md(r"""
+    # 看護師スケジューリング問題
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## 問題設定""")
+    mo.md(r"""
+    ## 問題設定
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-    典型的な設定だと下記. 
+    mo.md(r"""
+    典型的な設定だと下記.
 
     - 毎日の各勤務 (昼, 夕, 夜) の必要人数
     - 各看護師に対して 30 日間の勤務日数の上下限
@@ -56,15 +61,13 @@ def _(mo):
         - 休日 ::lucide:arrow-right:: 勤務 ::lucide:arrow-right:: 休日
     - 夜勤は 2 回連続で行う
     - 2 つのチームの人数をできるだけ均等化
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ### 定数
 
     - $W$: 休日以外のシフトの集合
@@ -96,20 +99,23 @@ def _(mo):
     - 夜勤は 2 連続: $\sum_{s \in N} x_{i,d-1,s} + x_{i,d,\text{夜}} + \sum_{s \in N} x_{i,d+1,s} \leq 2$
     - 2 チームの人数をできるだけ均等化:
       $\sum_{i \in T_1} x_{i d s} = \sum_{i \in T_2} x_{i d s}$ $(\forall d, s)$. これは制約というよりは目的関数?
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""## OR-Tools Example""")
+    mo.md(r"""
+    ## OR-Tools Example
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""参考: https://github.com/google/or-tools/blob/stable/examples/notebook/sat/nurses_sat.ipynb""")
+    mo.md(r"""
+    参考: https://github.com/google/or-tools/blob/stable/examples/notebook/sat/nurses_sat.ipynb
+    """)
     return
 
 
@@ -146,6 +152,7 @@ def _(cp_model):
 
         def solutionCount(self):
             return self._solution_count
+
     return (NursesPartialSolutionPrinter,)
 
 
@@ -245,6 +252,7 @@ def _(NursesPartialSolutionPrinter, cp_model):
             print(f"  - branches       : {solver.num_branches}")
             print(f"  - wall time      : {solver.wall_time} s")
             print(f"  - solutions found: {solution_printer.solutionCount()}")
+
     return (Model,)
 
 
@@ -252,11 +260,6 @@ def _(NursesPartialSolutionPrinter, cp_model):
 def _(Model):
     model = Model(num_nurses=4, num_shifts=3, num_days=6)
     model.solve()
-    return
-
-
-@app.cell
-def _():
     return
 
 
