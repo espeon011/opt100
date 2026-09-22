@@ -673,8 +673,6 @@ def _(didppy):
                 threads=threads,
                 quiet=False,
                 time_limit=timeout,
-                # makespan は max で積み上げるので f = max(g, 双対限界) にする
-                # 既定の Plus だと f を過大評価して最適解を枝刈りする
                 f_operator=didppy.FOperator.Max,
             )
             # self.solver = didppy.LNBS(
