@@ -19,7 +19,7 @@
     in {
       devShells.default = pkgs.mkShell {
         nativeBuildInputs = [];
-        BuildInputs = [];
+        buildInputs = [];
         packages = [
           pkgs.python314
           pkgs.uv
