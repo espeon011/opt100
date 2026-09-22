@@ -4,9 +4,9 @@
 [submodule "repo-okaduki"]
 	path = repo-okaduki
 	url = https://github.com/okaduki/opt100.git
-[submodule "notebooks/72_スケジューリング問題/jsplib"]
-	path = notebooks/72_スケジューリング問題/jsplib
+[submodule "notebooks/78_jssp/jsplib"]
+	path = notebooks/78_jssp/jsplib
 	url = https://github.com/tamy0612/JSPLIB.git
-[submodule "notebooks/72_スケジューリング問題/kobe-scheduling"]
-	path = notebooks/72_スケジューリング問題/kobe-scheduling
+[submodule "notebooks/78_jssp/kobe-scheduling"]
+	path = notebooks/78_jssp/kobe-scheduling
 	url = https://github.com/ptal/kobe-scheduling.git
