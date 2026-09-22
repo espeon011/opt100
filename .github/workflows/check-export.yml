@@ -1,0 +1,20 @@
+name: check-export
+
+# ノートブックと書き出し済みの ipynb でコードが一致するか調べる
+# ノートブックは実行しないのでソルバーや API は使わない
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  check-export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          enable-cache: true
+
+      - run: ./scripts/check_export.sh

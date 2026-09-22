@@ -16,6 +16,23 @@ marimo edit --headless --host 0.0.0.0 --sandbox --no-token
 Marimo をリモートマシンで起動している場合,
 表示された IP アドレスをリモートマシンの IP アドレスに変更してブラウザからアクセスする. 
 
+## ipynb の書き出し
+
+各ノートブックを実行して `__marimo__/*.ipynb` に書き出す.
+
+```
+./scripts/export.sh
+```
+
+引数でノートブックを指定するとそれだけ書き出す.
+
+```
+./scripts/export.sh notebooks/78_jssp/jobshop.py
+```
+
+GitHub のノートブック表示では altair の図が表示されないので,
+書き出した後に `scripts/static_outputs.py` でそれらの出力を PNG に置き換えている.
+
 ## Submodule
 
 ### 初回

@@ -7,7 +7,6 @@
 #     "marimo",
 #     "ortools==9.15.6755",
 #     "pandas==3.0.6",
-#     "plotly==7.1.0",
 #     "pyarrow==25.0.1",
 #     "pydantic==2.13.5",
 #     "python-dotenv==1.2.3",
@@ -41,7 +40,6 @@ def _():
     import random
     import dotenv
     import pandas
-    import plotly.express
     import altair
     from ortools.sat.python import cp_model
     import amplify_sched
@@ -57,7 +55,6 @@ def _():
         dotenv,
         os,
         pandas,
-        plotly,
         pprint,
         random,
     )
@@ -137,21 +134,6 @@ class Job(pydantic.BaseModel):
             jobs.append(cls(tasks=tasks))
 
         return jobs
-
-
-@app.cell
-def _(pandas, plotly):
-    def plot_plotly(df: pandas.DataFrame):
-        return plotly.express.timeline(
-            df,
-            x_start="start",
-            x_end="end",
-            y="resource",
-            color="job",
-            opacity=0.5,
-        ).update_yaxes(categoryorder="category descending")
-
-    return (plot_plotly,)
 
 
 @app.cell
@@ -276,12 +258,6 @@ def _(ModelCpSat, jobs1):
 
 
 @app.cell
-def _(model1_cpsat, plot_plotly):
-    plot_plotly(model1_cpsat.to_df())
-    return
-
-
-@app.cell
 def _(mo, model1_cpsat, plot_altair):
     mo.ui.altair_chart(plot_altair(model1_cpsat.to_df()))
     return
@@ -403,12 +379,6 @@ def _(ModelAmplifySe, jobs1):
 
 
 @app.cell
-def _(model1_amplify):
-    model1_amplify.solution.timeline(machine_view=True)
-    return
-
-
-@app.cell
 def _(model1_amplify, plot_altair):
     plot_altair(model1_amplify.to_df())
     return
@@ -458,8 +428,8 @@ def _(ModelCpSat, jobs2):
 
 
 @app.cell
-def _(model2_cpsat, plot_plotly):
-    plot_plotly(model2_cpsat.to_df())
+def _(model2_cpsat, plot_altair):
+    plot_altair(model2_cpsat.to_df())
     return
 
 
@@ -473,8 +443,8 @@ def _(ModelAmplifySe, jobs2):
 
 
 @app.cell
-def _(model2_amplify, plot_plotly):
-    plot_plotly(model2_amplify.to_df())
+def _(model2_amplify, plot_altair):
+    plot_altair(model2_amplify.to_df())
     return
 
 
@@ -522,8 +492,8 @@ def _(ModelAmplifySe, jobs3, mo):
 
 
 @app.cell
-def _(model3_amplify, plot_plotly):
-    plot_plotly(model3_amplify.to_df())
+def _(model3_amplify, plot_altair):
+    plot_altair(model3_amplify.to_df())
     return
 
 
@@ -537,8 +507,8 @@ def _(ModelCpSat, jobs3, mo):
 
 
 @app.cell
-def _(model3_cpsat, plot_plotly):
-    plot_plotly(model3_cpsat.to_df())
+def _(model3_cpsat, plot_altair):
+    plot_altair(model3_cpsat.to_df())
     return
 
 
